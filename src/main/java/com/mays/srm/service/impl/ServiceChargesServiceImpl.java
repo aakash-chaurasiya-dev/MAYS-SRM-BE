@@ -1,12 +1,8 @@
 package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.BrandDao;
-import com.mays.srm.dao.core.DeviceModelDao;
-import com.mays.srm.dao.core.DeviceTypeDao;
 import com.mays.srm.dao.core.ServiceChargesDao;
 import com.mays.srm.entity.Brand;
-import com.mays.srm.entity.DeviceModel;
-import com.mays.srm.entity.DeviceType;
 import com.mays.srm.entity.ServiceCharges;
 import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
@@ -23,16 +19,12 @@ import java.util.Optional;
 public class ServiceChargesServiceImpl implements ServiceChargesService {
 
     private final ServiceChargesDao repository;
-    private final DeviceTypeDao deviceTypeDao;
     private final BrandDao brandDao;
-    private final DeviceModelDao deviceModelDao;
 
     @Autowired
-    public ServiceChargesServiceImpl(ServiceChargesDao repository, DeviceTypeDao deviceTypeDao, BrandDao brandDao, DeviceModelDao deviceModelDao) {
+    public ServiceChargesServiceImpl(ServiceChargesDao repository, BrandDao brandDao) {
         this.repository = repository;
-        this.deviceTypeDao = deviceTypeDao;
         this.brandDao = brandDao;
-        this.deviceModelDao = deviceModelDao;
     }
 
     @Override
@@ -103,19 +95,9 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
     }
 
     /**
-     * Helper method to validate and set DeviceType, Brand, and DeviceModel relations
+     * Helper method to validate and set Brand relations
      */
     private void validateAndSetRelations(ServiceCharges entity) {
-        // Validate DeviceType
-        if (entity.getDeviceType() != null && entity.getDeviceType().getDeviceTypeId() != null) {
-            Optional<DeviceType> dtOpt = deviceTypeDao.findById(entity.getDeviceType().getDeviceTypeId());
-            if (dtOpt.isPresent()) {
-                entity.setDeviceType(dtOpt.get());
-            } else {
-                throw new ResourceNotFoundException("DeviceType not found with ID: " + entity.getDeviceType().getDeviceTypeId());
-            }
-        }
-
         // Validate Brand
         if (entity.getBrand() != null && entity.getBrand().getBrandId() != null) {
             Optional<Brand> brandOpt = brandDao.findById(entity.getBrand().getBrandId());
@@ -123,16 +105,6 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
                 entity.setBrand(brandOpt.get());
             } else {
                 throw new ResourceNotFoundException("Brand not found with ID: " + entity.getBrand().getBrandId());
-            }
-        }
-
-        // Validate DeviceModel
-        if (entity.getModel() != null && entity.getModel().getModelId() != null) {
-            Optional<DeviceModel> modelOpt = deviceModelDao.findById(entity.getModel().getModelId());
-            if (modelOpt.isPresent()) {
-                entity.setModel(modelOpt.get());
-            } else {
-                throw new ResourceNotFoundException("DeviceModel not found with ID: " + entity.getModel().getModelId());
             }
         }
     }

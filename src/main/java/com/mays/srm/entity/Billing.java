@@ -1,5 +1,6 @@
 package com.mays.srm.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -9,41 +10,41 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Billing")
+@Table(name = "billing")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Billing {
 
     @Id
-    @Column(name = "ticket_id")
-    private Integer ticketId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "billing_id")
+    private Integer billingId;
 
-    @OneToOne
-    @JoinColumn(name = "ticket_id")
-    @MapsId
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticket_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Ticket ticket;
 
-    @Column(name = "gst")
-    private BigDecimal gst;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Inventory product;
 
-    @Column(name = "delivery_charges")
-    private BigDecimal deliveryCharges;
-
-    @Column(name = "pickup_charges")
-    private BigDecimal pickupCharges;
-
-    @Column(name = "payment_mode")
-    private String paymentMode;
-
-    @Column(name = "misc_charges")
-    private BigDecimal miscCharges;
-
-    @Column(name = "total_amt")
-    private BigDecimal totalAmt;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_charge_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ServiceCharges serviceCharge;
 
-    @ManyToOne
-    @JoinColumn(name = "part_charge_id")
-    private Inventory partCharge;
+    @Column(name = "payment_mode", length = 50)
+    private String paymentMode;
+
+    @Column(name = "amount")
+    private BigDecimal amount;
+
+    @Column(name = "status", nullable = false, length = 50)
+    private String status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "Charge_type_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private ChargeType chargeType;
 }
