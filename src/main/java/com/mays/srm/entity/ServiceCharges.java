@@ -18,16 +18,8 @@ public class ServiceCharges {
     private Integer chargeId;
 
     @ManyToOne
-    @JoinColumn(name = "device_type")
-    private DeviceType deviceType;
-
-    @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;
-
-    @ManyToOne
-    @JoinColumn(name = "model_id")
-    private DeviceModel model;
 
     @Column(name = "descr", columnDefinition = "TEXT")
     private String descr;
