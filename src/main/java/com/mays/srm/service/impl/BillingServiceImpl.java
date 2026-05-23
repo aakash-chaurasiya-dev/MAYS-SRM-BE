@@ -21,6 +21,7 @@ public class BillingServiceImpl implements BillingService {
     private final ServiceChargesDao serviceChargesDao;
     private final TicketDao ticketDao;
     private final ChargeTypeDao chargeTypeDao;
+    private final StatusDao statusDao;
 
     @Autowired
     public BillingServiceImpl(
@@ -28,18 +29,21 @@ public class BillingServiceImpl implements BillingService {
             InventoryDao inventoryDao,
             ServiceChargesDao serviceChargesDao,
             TicketDao ticketDao,
-            ChargeTypeDao chargeTypeDao
-    ) {
+            ChargeTypeDao chargeTypeDao,
+            StatusDao statusDao) {
         this.billingDao = billingDao;
         this.inventoryDao = inventoryDao;
         this.serviceChargesDao = serviceChargesDao;
         this.ticketDao = ticketDao;
         this.chargeTypeDao = chargeTypeDao;
+        this.statusDao = statusDao;
+
     }
 
     @Override
     @Transactional
     public Billing create(Billing billing) {
+        validateStatus(billing.getStatus());
         // 1. Validate and fetch the ChargeType
         Optional<ChargeType> chargeTypeOpt = chargeTypeDao.findById(billing.getChargeType().getChargeTypeId());
         if (!chargeTypeOpt.isPresent()) {
@@ -120,5 +124,18 @@ public class BillingServiceImpl implements BillingService {
     @Override
     public void delete(Integer id) {
         billingDao.deleteById(id);
+
     }
+
+    private void validateStatus(Status status) {
+        if (status != null && status.getStatusId() != null) {
+            Status dbStatus = statusDao.findById(status.getStatusId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid status ID"));
+            if (!"billing".equalsIgnoreCase(dbStatus.getStatusType())) {
+                throw new IllegalArgumentException("Status must be of type 'billing'");
+            }
+        }
+    }
+
 }
+

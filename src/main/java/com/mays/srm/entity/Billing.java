@@ -40,8 +40,9 @@ public class Billing {
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private Status status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Charge_type_id")
