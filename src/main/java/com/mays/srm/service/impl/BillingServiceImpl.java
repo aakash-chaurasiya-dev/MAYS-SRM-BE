@@ -22,6 +22,7 @@ public class BillingServiceImpl implements BillingService {
     private final TicketDao ticketDao;
     private final ChargeTypeDao chargeTypeDao;
     private final StatusDao statusDao;
+    private final PaymentModeDetailsDao paymentModeDetailsDao;
 
     @Autowired
     public BillingServiceImpl(
@@ -30,20 +31,23 @@ public class BillingServiceImpl implements BillingService {
             ServiceChargesDao serviceChargesDao,
             TicketDao ticketDao,
             ChargeTypeDao chargeTypeDao,
-            StatusDao statusDao) {
+            StatusDao statusDao,
+            PaymentModeDetailsDao paymentModeDetailsDao) {
         this.billingDao = billingDao;
         this.inventoryDao = inventoryDao;
         this.serviceChargesDao = serviceChargesDao;
         this.ticketDao = ticketDao;
         this.chargeTypeDao = chargeTypeDao;
         this.statusDao = statusDao;
-
+        this.paymentModeDetailsDao = paymentModeDetailsDao;
     }
 
     @Override
     @Transactional
     public Billing create(Billing billing) {
         validateStatus(billing.getStatus());
+        validatePaymentMode(billing.getPaymentModeDetails());
+
         // 1. Validate and fetch the ChargeType
         Optional<ChargeType> chargeTypeOpt = chargeTypeDao.findById(billing.getChargeType().getChargeTypeId());
         if (!chargeTypeOpt.isPresent()) {
@@ -116,8 +120,13 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional
     public Billing update(Billing entity) {
-        // Similar logic as create can be implemented here if needed
+        if (entity.getBillingId() == null || !billingDao.existsById(entity.getBillingId())) {
+            throw new ResourceNotFoundException("Billing with ID " + entity.getBillingId() + " not found for update.");
+        }
+        validateStatus(entity.getStatus());
+        validatePaymentMode(entity.getPaymentModeDetails());
         return billingDao.save(entity);
     }
 
@@ -137,5 +146,10 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    private void validatePaymentMode(PaymentModeDetails paymentModeDetails) {
+        if (paymentModeDetails != null && paymentModeDetails.getPayModeId() != null) {
+            paymentModeDetailsDao.findById(paymentModeDetails.getPayModeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Payment Mode ID"));
+        }
+    }
 }
-
