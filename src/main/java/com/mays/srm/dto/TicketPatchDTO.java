@@ -17,6 +17,8 @@ public class TicketPatchDTO {
     private Integer ticketBranch; // maps to Branch branchId
     private Integer employeeId; // maps to Employee employeeId
     private String warrantyType;
+    private String remarks; // For logging purposes
+    private String priority; // To update ticket priority
 
     // Default setters for flat JSON keys
     public void setTicketStatus(Integer ticketStatus) { this.ticketStatus = ticketStatus; }
@@ -28,6 +30,8 @@ public class TicketPatchDTO {
     public void setEmailId(String emailId) { this.emailId = emailId; }
     public void setTicketDescription(String ticketDescription) { this.ticketDescription = ticketDescription; }
     public void setWarrantyType(String warrantyType) { this.warrantyType = warrantyType; }
+    public void setRemarks(String remarks) { this.remarks = remarks; }
+    public void setPriority(String priority) { this.priority = priority; }
 
     // Custom setters to handle nested JSON objects from client payload
     @JsonSetter("ticketStatus")

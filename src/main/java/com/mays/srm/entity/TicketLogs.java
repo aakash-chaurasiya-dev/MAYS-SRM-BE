@@ -29,17 +29,14 @@ public class TicketLogs {
     @JoinColumn(name = "assignee_employee")
     private Employee assigneeEmployee;
 
-    @Column(name = "timestamp")
-    private LocalDateTime timestamp;
+    @Column(name = "modification_date")
+    private LocalDateTime modificationDate;
 
-    @Column(name = "column_name")
-    private String columnName;
+    @Column(name = "old_status", columnDefinition = "TEXT")
+    private String oldStatus;
 
-    @Column(name = "old_value", columnDefinition = "TEXT")
-    private String oldValue;
-
-    @Column(name = "new_value", columnDefinition = "TEXT")
-    private String newValue;
+    @Column(name = "new_status", columnDefinition = "TEXT")
+    private String newStatus;
 
     @Column(name = "assignor_remarks", columnDefinition = "TEXT")
     private String assignorRemarks;
