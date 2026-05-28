@@ -21,6 +21,8 @@ public class BillingServiceImpl implements BillingService {
     private final ServiceChargesDao serviceChargesDao;
     private final TicketDao ticketDao;
     private final ChargeTypeDao chargeTypeDao;
+    private final StatusDao statusDao;
+    private final PaymentModeDetailsDao paymentModeDetailsDao;
 
     @Autowired
     public BillingServiceImpl(
@@ -28,18 +30,24 @@ public class BillingServiceImpl implements BillingService {
             InventoryDao inventoryDao,
             ServiceChargesDao serviceChargesDao,
             TicketDao ticketDao,
-            ChargeTypeDao chargeTypeDao
-    ) {
+            ChargeTypeDao chargeTypeDao,
+            StatusDao statusDao,
+            PaymentModeDetailsDao paymentModeDetailsDao) {
         this.billingDao = billingDao;
         this.inventoryDao = inventoryDao;
         this.serviceChargesDao = serviceChargesDao;
         this.ticketDao = ticketDao;
         this.chargeTypeDao = chargeTypeDao;
+        this.statusDao = statusDao;
+        this.paymentModeDetailsDao = paymentModeDetailsDao;
     }
 
     @Override
     @Transactional
     public Billing create(Billing billing) {
+        validateStatus(billing.getStatus());
+        validatePaymentMode(billing.getPaymentModeDetails());
+
         // 1. Validate and fetch the ChargeType
         Optional<ChargeType> chargeTypeOpt = chargeTypeDao.findById(billing.getChargeType().getChargeTypeId());
         if (!chargeTypeOpt.isPresent()) {
@@ -112,13 +120,36 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Transactional
     public Billing update(Billing entity) {
-        // Similar logic as create can be implemented here if needed
+        if (entity.getBillingId() == null || !billingDao.existsById(entity.getBillingId())) {
+            throw new ResourceNotFoundException("Billing with ID " + entity.getBillingId() + " not found for update.");
+        }
+        validateStatus(entity.getStatus());
+        validatePaymentMode(entity.getPaymentModeDetails());
         return billingDao.save(entity);
     }
 
     @Override
     public void delete(Integer id) {
         billingDao.deleteById(id);
+
+    }
+
+    private void validateStatus(Status status) {
+        if (status != null && status.getStatusId() != null) {
+            Status dbStatus = statusDao.findById(status.getStatusId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid status ID"));
+            if (!"billing".equalsIgnoreCase(dbStatus.getStatusType())) {
+                throw new IllegalArgumentException("Status must be of type 'billing'");
+            }
+        }
+    }
+
+    private void validatePaymentMode(PaymentModeDetails paymentModeDetails) {
+        if (paymentModeDetails != null && paymentModeDetails.getPayModeId() != null) {
+            paymentModeDetailsDao.findById(paymentModeDetails.getPayModeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Payment Mode ID"));
+        }
     }
 }

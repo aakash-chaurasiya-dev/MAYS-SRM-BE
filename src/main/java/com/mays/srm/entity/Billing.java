@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime; // Import LocalDateTime
 
 @Getter
 @Setter
@@ -34,17 +35,23 @@ public class Billing {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ServiceCharges serviceCharge;
 
-    @Column(name = "payment_mode", length = 50)
-    private String paymentMode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pay_mode_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private PaymentModeDetails paymentModeDetails;
 
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private Status status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Charge_type_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ChargeType chargeType;
+
+    @Column(name = "billing_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime billingDate;
 }
