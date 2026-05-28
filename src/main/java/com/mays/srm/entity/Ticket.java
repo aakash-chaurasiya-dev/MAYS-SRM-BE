@@ -2,6 +2,9 @@ package com.mays.srm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -48,4 +51,18 @@ public class Ticket {
 
     @Column(name = "warranty_type")
     private String warrantyType;
+
+    @Column(name = "priority", length = 20)
+    private String priority;
+
+    @CreationTimestamp
+    @Column(name = "created_date", updatable = false)
+    private LocalDateTime createdDate;
+
+    @UpdateTimestamp
+    @Column(name = "last_updated_date")
+    private LocalDateTime lastUpdatedDate;
+
+    @Column(name = "mod_no")
+    private Integer modNo = 0;
 }
