@@ -48,7 +48,15 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Swagger/OpenAPI for Spring Boot 3 -->
+<!--		Model Mapper -->
+		<dependency>
+			<groupId>org.modelmapper</groupId>
+			<artifactId>modelmapper</artifactId>
+			<version>3.2.6</version>
+		</dependency>
+
+
+		<!-- Swagger/OpenAPI for Spring Boot 3 -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
