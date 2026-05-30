@@ -41,14 +41,37 @@ public class SecurityConfig {
                 // Set Authorization Rules (Who is allowed where?)
                 .authorizeHttpRequests(auth -> auth
                         // 1. OPEN DOORS: Anyone can go to the login URL to get a wristband.
-                        .requestMatchers("/api/auth/**").permitAll() 
-                        
-                        // 2. RESTRICTED DOORS (Examples):
-//                         .requestMatchers("/api/admin/**").hasRole("MANAGER")
-//                         .requestMatchers("/api/engineer/**").hasRole("ENGINEER")
+                        // Added Swagger UI URLs to permitAll
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
-                        // 3. CLOSED DOORS: Every other URL requires a valid wristband to enter!
-                        .anyRequest().permitAll()
+                        // 2. EMPLOYEE MANAGEMENT: Only Manager can access
+                        .requestMatchers(
+                                "/api/employees/**",
+                                "/api/users/**",
+                                "/api/employee-spec/**"
+                        ).hasRole("MANAGER")
+
+                        // 3. TICKETS, DEVICES, BRANCHES, STATUSES: Accessible by Manager, Purchase, Engineer, and Admin
+                        .requestMatchers(
+                                "/api/tickets/**",
+                                "/api/ticket-logs/**",
+                                "/api/ticket-types/**",
+                                "/api/devices/**",
+                                "/api/device-types/**",
+                                "/api/device-models/**",
+                                "/api/branches/**",
+                                "/api/statuses/**"
+                        ).hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN")
+
+                        // 4. EVERYTHING ELSE (Purchase related): Accessible by Manager and Purchase Team
+                        // Since employee management is matched above, they are excluded from this.
+                        .anyRequest().hasAnyRole("MANAGER", "PURCHASE")
                 )
 
                 // Set Session Management (Make the API Stateless)
