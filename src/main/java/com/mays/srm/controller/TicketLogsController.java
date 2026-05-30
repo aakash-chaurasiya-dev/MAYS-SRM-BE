@@ -1,21 +1,23 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.TicketLogs;
-import com.mays.srm.service.GenericService;
+import com.mays.srm.dto.responseDTO.TicketLogsResponseDTO;
 import com.mays.srm.service.TicketLogsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/ticket-logs")
-public class TicketLogsController extends AbstractController<TicketLogs, Integer> {
+public class TicketLogsController {
 
     @Autowired
-    private TicketLogsService service;
+    private TicketLogsService ticketLogsService;
 
-    @Override
-    protected GenericService<TicketLogs, Integer> getService() {
-        return service;
+    @GetMapping("/ticket/{ticketId}")
+    public ResponseEntity<List<TicketLogsResponseDTO>> getLogsForTicket(@PathVariable Integer ticketId) {
+        List<TicketLogsResponseDTO> responseDTOs = ticketLogsService.getLogsForTicket(ticketId);
+        return ResponseEntity.ok(responseDTOs);
     }
 }

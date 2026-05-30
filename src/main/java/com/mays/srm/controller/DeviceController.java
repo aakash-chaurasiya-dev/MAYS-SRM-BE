@@ -1,8 +1,8 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.Device;
+import com.mays.srm.dto.requestDTO.DeviceRequestDTO;
+import com.mays.srm.dto.responseDTO.DeviceResponseDTO;
 import com.mays.srm.service.DeviceService;
-import com.mays.srm.service.GenericService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,31 +11,38 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/devices")
-public class DeviceController extends AbstractController<Device, String> {
+public class DeviceController {
 
     @Autowired
-    private DeviceService service;
+    private DeviceService deviceService;
 
-    @Override
-    protected GenericService<Device, String> getService() {
-        return service;
+    @PostMapping
+    public ResponseEntity<DeviceResponseDTO> createDevice(@RequestBody DeviceRequestDTO requestDTO) {
+        DeviceResponseDTO responseDTO = deviceService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/model/{modelName}")
-    public ResponseEntity<List<Device>> findByModelName(@PathVariable String modelName) {
-        List<Device> devices = service.findByModelName(modelName);
-        return ResponseEntity.ok(devices);
+    @GetMapping("/{id}")
+    public ResponseEntity<DeviceResponseDTO> getDeviceById(@PathVariable String id) {
+        DeviceResponseDTO responseDTO = deviceService.getById(id);
+        return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/brand/{brandName}")
-    public ResponseEntity<List<Device>> findByBrandName(@PathVariable String brandName) {
-        List<Device> devices = service.findByBrandName(brandName);
-        return ResponseEntity.ok(devices);
+    @GetMapping
+    public ResponseEntity<List<DeviceResponseDTO>> getAllDevices() {
+        List<DeviceResponseDTO> responseDTOs = deviceService.getAll();
+        return ResponseEntity.ok(responseDTOs);
     }
 
-    @GetMapping("/type/{deviceType}")
-    public ResponseEntity<List<Device>> findByDeviceTypeName(@PathVariable String deviceType) {
-        List<Device> devices = service.findByDeviceTypeName(deviceType);
-        return ResponseEntity.ok(devices);
+    @PutMapping("/{id}")
+    public ResponseEntity<DeviceResponseDTO> updateDevice(@PathVariable String id, @RequestBody DeviceRequestDTO requestDTO) {
+        DeviceResponseDTO updatedDto = deviceService.update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteDevice(@PathVariable String id) {
+        deviceService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

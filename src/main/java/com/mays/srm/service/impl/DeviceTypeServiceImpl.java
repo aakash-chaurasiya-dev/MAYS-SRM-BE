@@ -1,15 +1,18 @@
 package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.DeviceTypeDao;
+import com.mays.srm.dto.requestDTO.DeviceTypeRequestDTO;
+import com.mays.srm.dto.responseDTO.DeviceTypeResponseDTO;
 import com.mays.srm.entity.DeviceType;
-import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.DeviceTypeService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,93 +20,74 @@ import java.util.Optional;
 public class DeviceTypeServiceImpl implements DeviceTypeService {
 
     private final DeviceTypeDao repository;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public DeviceTypeServiceImpl(DeviceTypeDao repository) {
+    public DeviceTypeServiceImpl(DeviceTypeDao repository, ModelMapper modelMapper) {
         this.repository = repository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public DeviceType create(DeviceType entity) {
+    public DeviceTypeResponseDTO create(DeviceTypeRequestDTO requestDTO) {
         try {
-            if (entity.getDeviceTypeName() != null) {
-                entity.setDeviceTypeName(entity.getDeviceTypeName().trim());
-            } else {
-                 throw new BadRequestException("DeviceType Name is required.");
-            }
-            
-            if (entity.getDeviceTypeDescription() != null) {
-                entity.setDeviceTypeDescription(entity.getDeviceTypeDescription().trim());
-            }
-            
-            return repository.save(entity);
-        } catch (BadRequestException | DataIntegrityViolationException ex) {
-            throw ex;
+            DeviceType deviceType = modelMapper.map(requestDTO, DeviceType.class);
+            DeviceType savedDeviceType = repository.save(deviceType);
+            return modelMapper.map(savedDeviceType, DeviceTypeResponseDTO.class);
         } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while creating DeviceType", ex);
+            throw new InternalServerException("Error occurred while creating Device Type", ex);
         }
     }
 
     @Override
-    public Optional<DeviceType> getById(Integer id) {
-        Optional<DeviceType> typeOpt = repository.findById(id);
-        
-        if (typeOpt.isPresent()) {
-            return typeOpt;
+    public DeviceTypeResponseDTO getById(Integer id) {
+        Optional<DeviceType> deviceTypeOpt = repository.findById(id);
+        if (deviceTypeOpt.isPresent()) {
+            return modelMapper.map(deviceTypeOpt.get(), DeviceTypeResponseDTO.class);
         } else {
-            throw new ResourceNotFoundException("DeviceType not found with ID: " + id);
+            throw new ResourceNotFoundException("Device Type not found with ID: " + id);
         }
     }
 
     @Override
-    public List<DeviceType> getAll() {
-        return repository.findAll();
+    public List<DeviceTypeResponseDTO> getAll() {
+        List<DeviceType> deviceTypeList = repository.findAll();
+        List<DeviceTypeResponseDTO> dtoList = new ArrayList<>();
+        for (DeviceType deviceType : deviceTypeList) {
+            dtoList.add(modelMapper.map(deviceType, DeviceTypeResponseDTO.class));
+        }
+        return dtoList;
     }
 
     @Override
-    public DeviceType update(DeviceType entity) {
+    public DeviceTypeResponseDTO update(Integer id, DeviceTypeRequestDTO requestDTO) {
+        Optional<DeviceType> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Device Type not found with ID: " + id);
+        }
+        
+        DeviceType existingDeviceType = existingOpt.get();
+        modelMapper.map(requestDTO, existingDeviceType);
+        
         try {
-            if (entity.getDeviceTypeId() == null) {
-                throw new ResourceNotFoundException("Cannot update. DeviceType ID is missing.");
-            }
-            
-            boolean exists = repository.existsById(entity.getDeviceTypeId());
-            if (!exists) {
-                throw new ResourceNotFoundException("Cannot update. DeviceType not found with ID: " + entity.getDeviceTypeId());
-            }
-
-            if (entity.getDeviceTypeName() != null) {
-                entity.setDeviceTypeName(entity.getDeviceTypeName().trim());
-            } else {
-                 throw new BadRequestException("DeviceType Name is required.");
-            }
-            
-            if (entity.getDeviceTypeDescription() != null) {
-                entity.setDeviceTypeDescription(entity.getDeviceTypeDescription().trim());
-            }
-            
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
-            throw ex;
+            DeviceType updatedDeviceType = repository.save(existingDeviceType);
+            return modelMapper.map(updatedDeviceType, DeviceTypeResponseDTO.class);
         } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while updating DeviceType", ex);
+            throw new InternalServerException("Error occurred while updating Device Type", ex);
         }
     }
 
     @Override
     public void delete(Integer id) {
-        boolean exists = repository.existsById(id);
-        
-        if (!exists) {
-            throw new ResourceNotFoundException("Cannot delete. DeviceType not found with ID: " + id);
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("Cannot delete. Device Type not found with ID: " + id);
         }
-        
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete DeviceType because it is assigned to existing Brands.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Device Type because it is currently in use.", ex);
         } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while deleting DeviceType with ID: " + id, ex);
+            throw new InternalServerException("Error occurred while deleting Device Type with ID: " + id, ex);
         }
     }
 }

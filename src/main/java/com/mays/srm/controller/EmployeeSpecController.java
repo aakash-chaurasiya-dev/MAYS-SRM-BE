@@ -1,43 +1,36 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.EmployeeSpec;
-import com.mays.srm.entity.EmployeeSpecId;
+import com.mays.srm.dto.requestDTO.EmployeeSpecRequestDTO;
+import com.mays.srm.dto.responseDTO.EmployeeSpecResponseDTO;
 import com.mays.srm.service.EmployeeSpecService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/employee-specs")
 public class EmployeeSpecController {
 
     @Autowired
-    private EmployeeSpecService service;
+    private EmployeeSpecService employeeSpecService;
 
     @PostMapping
-    public ResponseEntity<EmployeeSpec> create(@RequestBody EmployeeSpec entity) {
-        return ResponseEntity.ok(service.create(entity));
+    public ResponseEntity<EmployeeSpecResponseDTO> createEmployeeSpec(@RequestBody EmployeeSpecRequestDTO requestDTO) {
+        EmployeeSpecResponseDTO responseDTO = employeeSpecService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<List<EmployeeSpec>> getAll() {
-        return ResponseEntity.ok(service.getAll());
+    public ResponseEntity<List<EmployeeSpecResponseDTO>> getAllEmployeeSpecs() {
+        List<EmployeeSpecResponseDTO> responseDTOs = employeeSpecService.getAll();
+        return ResponseEntity.ok(responseDTOs);
     }
 
-    @GetMapping("/{employeeId}/{deviceId}")
-    public ResponseEntity<EmployeeSpec> getById(@PathVariable Integer employeeId, @PathVariable Integer deviceId) {
-        EmployeeSpecId id = new EmployeeSpecId(employeeId, deviceId);
-        Optional<EmployeeSpec> entity = service.getById(id);
-        return entity.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{employeeId}/{deviceId}")
-    public ResponseEntity<Void> delete(@PathVariable Integer employeeId, @PathVariable Integer deviceId) {
-        EmployeeSpecId id = new EmployeeSpecId(employeeId, deviceId);
-        service.delete(id);
-        return ResponseEntity.ok().build();
+    @DeleteMapping
+    public ResponseEntity<Void> deleteEmployeeSpec(@RequestParam Integer employeeId, @RequestParam Integer deviceTypeId) {
+        employeeSpecService.delete(employeeId, deviceTypeId);
+        return ResponseEntity.noContent().build();
     }
 }

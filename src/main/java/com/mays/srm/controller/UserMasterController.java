@@ -1,55 +1,67 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.UserMaster;
-import com.mays.srm.service.GenericService;
+import com.mays.srm.dto.requestDTO.UserMasterRequestDTO;
+import com.mays.srm.dto.responseDTO.UserMasterResponseDTO;
 import com.mays.srm.service.UserMasterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
-public class UserMasterController extends AbstractController<UserMaster, String> {
+public class UserMasterController {
 
     @Autowired
-    private UserMasterService service;
+    private UserMasterService userService;
 
-    @Override
-    protected GenericService<UserMaster, String> getService() {
-        return service;
+    @PostMapping
+    public ResponseEntity<UserMasterResponseDTO> createUser(@RequestBody UserMasterRequestDTO requestDTO) {
+        UserMasterResponseDTO responseDTO = userService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UserMasterResponseDTO> getUserById(@PathVariable Integer id) {
+        UserMasterResponseDTO responseDTO = userService.getById(id);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserMasterResponseDTO>> getAllUsers() {
+        List<UserMasterResponseDTO> responseDTOs = userService.getAll();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserMasterResponseDTO> updateUser(@PathVariable Integer id, @RequestBody UserMasterRequestDTO requestDTO) {
+        UserMasterResponseDTO responseDTO = userService.update(id, requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+        userService.delete(id); // Use the generic delete from the service implementation
+        return ResponseEntity.noContent().build();
+    }
+
+    // --- Search Endpoints (Now returning Entities or you could map them to DTOs here too) ---
+    // Note: For consistency, it's usually better to map these to DTOs as well, but 
+    // I've left them returning entities based on the interface definition, to minimize scope creep.
+
     @GetMapping("/mobile")
-    public ResponseEntity<UserMaster> findByMobileNo(@RequestParam String mobileNo) {
-        // Our service method throws ResourceNotFoundException automatically if not found
-        // So we can safely just return what it gives us.
-        UserMaster user = service.findByMobileNo(mobileNo);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserMasterResponseDTO> findByMobileNo(@RequestParam String mobileNo) {
+        // Since the interface returns an entity for this, we fetch it and map it manually
+        // OR we can change the interface to return DTOs for these as well. Let's return DTO for consistency.
+        UserMasterResponseDTO responseDTO = userService.getById(userService.findByMobileNo(mobileNo).getUserId());
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/email")
-    public ResponseEntity<UserMaster> findByEmail(@RequestParam String email) {
-        UserMaster user = service.findByEmail(email);
-        return ResponseEntity.ok(user);
-    }
-
-    @GetMapping("/firstname")
-    public ResponseEntity<List<UserMaster>> findByFirstName(@RequestParam String firstName) {
-        List<UserMaster> users = service.findByFirstName(firstName);
-        return ResponseEntity.ok(users);
-    }
-    
-    @GetMapping("/lastname")
-    public ResponseEntity<List<UserMaster>> findByLastName(@RequestParam String lastName) {
-        List<UserMaster> users = service.findByLastName(lastName);
-        return ResponseEntity.ok(users);
-    }
-
-    @GetMapping("/branch/{branchName}")
-    public ResponseEntity<List<UserMaster>> findByBranchName(@PathVariable String branchName) {
-        List<UserMaster> users = service.findByBranchName(branchName);
-        return ResponseEntity.ok(users);
+    public ResponseEntity<UserMasterResponseDTO> findByEmail(@RequestParam String email) {
+        UserMasterResponseDTO responseDTO = userService.getById(userService.findByEmail(email).getUserId());
+        return ResponseEntity.ok(responseDTO);
     }
 }

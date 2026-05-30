@@ -1,9 +1,9 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.ChargeType;
+import com.mays.srm.dto.requestDTO.ChargeTypeRequestDTO;
+import com.mays.srm.dto.responseDTO.ChargeTypeResponseDTO;
 import com.mays.srm.service.ChargeTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,30 +17,32 @@ public class ChargeTypeController {
     private ChargeTypeService chargeTypeService;
 
     @PostMapping
-    public ResponseEntity<ChargeType> createChargeType(@RequestBody ChargeType chargeType) {
-        ChargeType createdChargeType = chargeTypeService.createChargeType(chargeType);
-        return new ResponseEntity<>(createdChargeType, HttpStatus.CREATED);
+    public ResponseEntity<ChargeTypeResponseDTO> createChargeType(@RequestBody ChargeTypeRequestDTO requestDTO) {
+        ChargeTypeResponseDTO responseDTO = chargeTypeService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ChargeType> getChargeTypeById(@PathVariable Integer id) {
-        ChargeType chargeType = chargeTypeService.getChargeTypeById(id);
-        if (chargeType != null) {
-            return new ResponseEntity<>(chargeType, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ChargeTypeResponseDTO> getChargeTypeById(@PathVariable Integer id) {
+        ChargeTypeResponseDTO responseDTO = chargeTypeService.getById(id);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<List<ChargeType>> getAllChargeTypes() {
-        List<ChargeType> chargeTypes = chargeTypeService.getAllChargeTypes();
-        return new ResponseEntity<>(chargeTypes, HttpStatus.OK);
+    public ResponseEntity<List<ChargeTypeResponseDTO>> getAllChargeTypes() {
+        List<ChargeTypeResponseDTO> responseDTOs = chargeTypeService.getAll();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ChargeTypeResponseDTO> updateChargeType(@PathVariable Integer id, @RequestBody ChargeTypeRequestDTO requestDTO) {
+        ChargeTypeResponseDTO updatedDto = chargeTypeService.update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteChargeType(@PathVariable Integer id) {
-        chargeTypeService.deleteChargeType(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        chargeTypeService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

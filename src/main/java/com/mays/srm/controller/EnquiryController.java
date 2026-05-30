@@ -1,21 +1,48 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.Enquiry;
+import com.mays.srm.dto.requestDTO.EnquiryRequestDTO;
+import com.mays.srm.dto.responseDTO.EnquiryResponseDTO;
 import com.mays.srm.service.EnquiryService;
-import com.mays.srm.service.GenericService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/enquiries")
-public class EnquiryController extends AbstractController<Enquiry, Integer> {
+public class EnquiryController {
 
     @Autowired
-    private EnquiryService service;
+    private EnquiryService enquiryService;
 
-    @Override
-    protected GenericService<Enquiry, Integer> getService() {
-        return service;
+    @PostMapping
+    public ResponseEntity<EnquiryResponseDTO> createEnquiry(@RequestBody EnquiryRequestDTO requestDTO) {
+        EnquiryResponseDTO responseDTO = enquiryService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EnquiryResponseDTO> getEnquiryById(@PathVariable Integer id) {
+        EnquiryResponseDTO responseDTO = enquiryService.getById(id);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiries() {
+        List<EnquiryResponseDTO> responseDTOs = enquiryService.getAll();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<EnquiryResponseDTO> updateEnquiry(@PathVariable Integer id, @RequestBody EnquiryRequestDTO requestDTO) {
+        EnquiryResponseDTO updatedDto = enquiryService.update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEnquiry(@PathVariable Integer id) {
+        enquiryService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

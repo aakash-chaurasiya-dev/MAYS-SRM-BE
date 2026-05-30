@@ -5,45 +5,41 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * A simple base controller to handle standard CRUD operations.
+ * A simple base controller to handle standard CRUD operations using DTOs.
  * If a Controller extends this, it automatically gets Create, Read, Update, Delete endpoints.
+ * @param <REQ_DTO> The Request DTO for creating/updating.
+ * @param <RES_DTO> The Response DTO for returning data.
+ * @param <ID> The type of the entity's ID.
  */
-public abstract class AbstractController<T, ID> {
+public abstract class AbstractController<REQ_DTO, RES_DTO, ID> {
 
     // Any controller that extends this must tell us which Service to use
-    protected abstract GenericService<T, ID> getService();
+    protected abstract GenericService<REQ_DTO, RES_DTO, ID> getService();
 
     @PostMapping
-    public ResponseEntity<T> create(@RequestBody T entity) {
-        T createdEntity = getService().create(entity);
-        return ResponseEntity.ok(createdEntity);
+    public ResponseEntity<RES_DTO> create(@RequestBody REQ_DTO requestDTO) {
+        RES_DTO createdDto = getService().create(requestDTO);
+        return ResponseEntity.ok(createdDto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<T> getById(@PathVariable ID id) {
-        Optional<T> entityOpt = getService().getById(id);
-        
-        if (entityOpt.isPresent()) {
-             return ResponseEntity.ok(entityOpt.get());
-        } else {
-             // Fallback just in case a service doesn't throw the exception correctly
-             return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<RES_DTO> getById(@PathVariable ID id) {
+        RES_DTO responseDto = getService().getById(id);
+        return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping
-    public ResponseEntity<List<T>> getAll() {
-        List<T> allEntities = getService().getAll();
-        return ResponseEntity.ok(allEntities);
+    public ResponseEntity<List<RES_DTO>> getAll() {
+        List<RES_DTO> dtoList = getService().getAll();
+        return ResponseEntity.ok(dtoList);
     }
 
-    @PutMapping
-    public ResponseEntity<T> update(@RequestBody T entity) {
-        T updatedEntity = getService().update(entity);
-        return ResponseEntity.ok(updatedEntity);
+    @PutMapping("/{id}")
+    public ResponseEntity<RES_DTO> update(@PathVariable ID id, @RequestBody REQ_DTO requestDTO) {
+        RES_DTO updatedDto = getService().update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
     }
 
     @DeleteMapping("/{id}")

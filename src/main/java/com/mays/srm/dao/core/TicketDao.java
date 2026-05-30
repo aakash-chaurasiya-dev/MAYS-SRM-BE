@@ -14,7 +14,7 @@ public interface TicketDao extends JpaRepository<Ticket, Integer>, TicketDaoCust
     // getAllTicket() -> Use built-in findAll() from JpaRepository
 
     // + getAllTicketOfUser(String user_ref_no)
-    List<Ticket> findByUserMasterUserId(String userId);
+    List<Ticket> findByUserMasterUserId(Integer userId);
 
     // + getAllTicketOfBranch(int Branch)
     List<Ticket> findByTicketBranchBranchId(Integer branchId);

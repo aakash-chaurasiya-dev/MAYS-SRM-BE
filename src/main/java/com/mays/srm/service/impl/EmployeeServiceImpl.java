@@ -2,16 +2,20 @@ package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.DepartmentDao;
 import com.mays.srm.dao.core.EmployeeDao;
+import com.mays.srm.dto.requestDTO.EmployeeRequestDTO;
+import com.mays.srm.dto.responseDTO.EmployeeResponseDTO;
 import com.mays.srm.entity.Department;
 import com.mays.srm.entity.Employee;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.EmployeeService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,39 +25,37 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeDao repository;
     private final DepartmentDao departmentDao;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder) {
+    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.repository = repository;
         this.departmentDao = departmentDao;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public Employee create(Employee entity) {
+    public EmployeeResponseDTO create(EmployeeRequestDTO requestDTO) {
         try {
-            if (entity.getDepartment().getDepartmentId() != null) {
+            Employee employee = modelMapper.map(requestDTO, Employee.class);
 
-                Optional<Department> deptOpt = departmentDao.findById(entity.getDepartment().getDepartmentId());
-
-                if (deptOpt.isPresent()) {
-                    entity.setDepartment(deptOpt.get());
+            if (requestDTO.getDepartmentId() != null) {
+                Optional<Department> departmentOpt = departmentDao.findById(requestDTO.getDepartmentId());
+                if (departmentOpt.isPresent()) {
+                    employee.setDepartment(departmentOpt.get());
                 } else {
-                    throw new ResourceNotFoundException(
-                            "Department not found with ID: " + entity.getDepartment().getDepartmentId()
-                    );
+                    throw new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId());
                 }
             }
 
-            if (entity.getPassword() != null) {
-                entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+            if (employee.getPassword() != null) {
+                employee.setPassword(passwordEncoder.encode(employee.getPassword()));
             }
 
-            return repository.save(entity);
-
-        } catch (ResourceNotFoundException ex) {
-            throw ex;
-        } catch (DataIntegrityViolationException ex) {
+            Employee savedEmployee = repository.save(employee);
+            return mapToResponseDTO(savedEmployee);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Employee", ex);
@@ -61,45 +63,58 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Optional<Employee> getById(Integer id) {
-        Optional<Employee> employee = repository.findById(id);
-        if (employee.isEmpty()) {
+    public EmployeeResponseDTO getById(Integer id) {
+        Optional<Employee> employeeOpt = repository.findById(id);
+        if (employeeOpt.isPresent()) {
+            return mapToResponseDTO(employeeOpt.get());
+        } else {
             throw new ResourceNotFoundException("Employee not found with ID: " + id);
         }
-        return employee;
     }
 
     @Override
-    public List<Employee> getAll() {
-        return repository.findAll();
+    public List<EmployeeResponseDTO> getAll() {
+        List<Employee> employeeList = repository.findAll();
+        List<EmployeeResponseDTO> dtoList = new ArrayList<>();
+        for (Employee employee : employeeList) {
+            dtoList.add(mapToResponseDTO(employee));
+        }
+        return dtoList;
     }
 
     @Override
-    public Employee update(Employee entity) {
+    public EmployeeResponseDTO update(Integer id, EmployeeRequestDTO requestDTO) {
+        Optional<Employee> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Employee not found with ID: " + id);
+        }
+
+        Employee existingEmployee = existingOpt.get();
+        String currentPassword = existingEmployee.getPassword();
+        
+        modelMapper.map(requestDTO, existingEmployee);
+        existingEmployee.setEmployeeId(id);
+
+        if (requestDTO.getPassword() == null || requestDTO.getPassword().isEmpty()) {
+            existingEmployee.setPassword(currentPassword);
+        } else if (!requestDTO.getPassword().startsWith("$2a$")) {
+            existingEmployee.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+        }
+
+        if (requestDTO.getDepartmentId() != null) {
+            Optional<Department> departmentOpt = departmentDao.findById(requestDTO.getDepartmentId());
+            if (departmentOpt.isPresent()) {
+                existingEmployee.setDepartment(departmentOpt.get());
+            } else {
+                throw new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId());
+            }
+        } else {
+            existingEmployee.setDepartment(null);
+        }
+
         try {
-            if (entity.getDepartment().getDepartmentId() != null) {
-
-                Optional<Department> deptOpt = departmentDao.findById(entity.getDepartment().getDepartmentId());
-
-                if (deptOpt.isPresent()) {
-                    entity.setDepartment(deptOpt.get());
-                } else {
-                    throw new ResourceNotFoundException(
-                            "Department not found with ID: " + entity.getDepartment().getDepartmentId()
-                    );
-                }
-            }
-
-            if (entity.getPassword() != null && !entity.getPassword().startsWith("$2a$")) {
-                entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-            }
-
-            return repository.save(entity);
-
-        } catch (ResourceNotFoundException ex) {
-            throw ex;
-        } catch (DataIntegrityViolationException ex) {
-            throw ex;
+            Employee updatedEmployee = repository.save(existingEmployee);
+            return mapToResponseDTO(updatedEmployee);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Employee", ex);
         }
@@ -113,42 +128,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-             throw ex;
+            throw new DataIntegrityViolationException("Cannot delete Employee because they are currently assigned to active records.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Employee with ID: " + id, ex);
         }
     }
 
-    // Existing find methods, added exception handling
-    public Optional<Employee> findEmployeeByMobileNo(String mobileNo) {
-        Optional<Employee> employee = repository.findByMobileNo(mobileNo);
-        if (employee.isEmpty()) {
-            throw new ResourceNotFoundException("Employee not found with mobile number: " + mobileNo);
+    private EmployeeResponseDTO mapToResponseDTO(Employee employee) {
+        EmployeeResponseDTO dto = modelMapper.map(employee, EmployeeResponseDTO.class);
+        if (employee.getDepartment() != null) {
+            dto.setDepartmentName(employee.getDepartment().getDepartmentName());
         }
-        return employee;
-    }
-
-    public Optional<Employee> findEmployeeByEmail(String email) {
-        Optional<Employee> employee = repository.findByEmail(email);
-        if (employee.isEmpty()) {
-            throw new ResourceNotFoundException("Employee not found with email: " + email);
-        }
-        return employee;
-    }
-
-    public List<Employee> findByEmployeeName(String employeeName) {
-        List<Employee> employees = repository.findByEmployeeName(employeeName);
-        if (employees.isEmpty()) {
-            throw new ResourceNotFoundException("No employees found with name: " + employeeName);
-        }
-        return employees;
-    }
-
-    public List<Employee> findEmployeeByDepartment(int departmentId) {
-        List<Employee> employees = repository.findByDepartment(departmentId);
-        if (employees.isEmpty()) {
-            throw new ResourceNotFoundException("No employees found in department ID: " + departmentId);
-        }
-        return employees;
+        return dto;
     }
 }

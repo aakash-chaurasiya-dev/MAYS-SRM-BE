@@ -1,6 +1,8 @@
 package com.mays.srm.service;
 
-import com.mays.srm.entity.TicketLogs;
+import com.mays.srm.dto.responseDTO.TicketLogsResponseDTO;
+import java.util.List;
 
-public interface TicketLogsService extends GenericService<TicketLogs, Integer> {
+public interface TicketLogsService {
+    List<TicketLogsResponseDTO> getLogsForTicket(Integer ticketId);
 }

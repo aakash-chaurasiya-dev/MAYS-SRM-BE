@@ -1,21 +1,48 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.Brand;
+import com.mays.srm.dto.requestDTO.BrandRequestDTO;
+import com.mays.srm.dto.responseDTO.BrandResponseDTO;
 import com.mays.srm.service.BrandService;
-import com.mays.srm.service.GenericService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/brands")
-public class BrandController extends AbstractController<Brand, Integer> {
+public class BrandController {
 
     @Autowired
-    private BrandService service;
+    private BrandService brandService;
 
-    @Override
-    protected GenericService<Brand, Integer> getService() {
-        return service;
+    @PostMapping
+    public ResponseEntity<BrandResponseDTO> createBrand(@RequestBody BrandRequestDTO requestDTO) {
+        BrandResponseDTO responseDTO = brandService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BrandResponseDTO> getBrandById(@PathVariable Integer id) {
+        BrandResponseDTO responseDTO = brandService.getById(id);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BrandResponseDTO>> getAllBrands() {
+        List<BrandResponseDTO> responseDTOs = brandService.getAll();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BrandResponseDTO> updateBrand(@PathVariable Integer id, @RequestBody BrandRequestDTO requestDTO) {
+        BrandResponseDTO updatedDto = brandService.update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBrand(@PathVariable Integer id) {
+        brandService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
