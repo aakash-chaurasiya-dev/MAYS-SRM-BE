@@ -1,18 +1,13 @@
 package com.mays.srm.service;
 
-import com.mays.srm.entity.Ticket;
-import com.mays.srm.dto.TicketPatchDTO;
-import java.util.List;
-import java.util.Optional;
+import com.mays.srm.dto.requestDTO.TicketRequestDTO;
+import com.mays.srm.dto.responseDTO.TicketResponseDTO;
 
-public interface TicketService {
-    Optional<Ticket> getTicket(int id);
-    List<Ticket> getAllTickets();
-    List<Ticket> getAllTicketsOfUser(String userId);
-    List<Ticket> getAllTicketsOfBranch(int branchId);
-    List<Ticket> getAllTicketsOfStatus(int statusId);
-    List<Ticket> getAllTicketsOfEmployee(int employeeId);
-    Ticket createTicket(Ticket ticket);
-    Ticket updateTicket(int id, TicketPatchDTO dto);
-    void deleteTicket(int id);
+import java.util.List;
+
+public interface TicketService extends GenericService<TicketRequestDTO, TicketResponseDTO, Integer> {
+    List<TicketResponseDTO> getAllTicketsOfUser(Integer userId);
+    List<TicketResponseDTO> getAllTicketsOfBranch(int branchId);
+    List<TicketResponseDTO> getAllTicketsOfStatus(int statusId);
+    List<TicketResponseDTO> getAllTicketsOfEmployee(int employeeId);
 }

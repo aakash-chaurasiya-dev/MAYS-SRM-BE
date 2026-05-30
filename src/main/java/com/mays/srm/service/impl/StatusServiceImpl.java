@@ -1,14 +1,18 @@
 package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.StatusDao;
+import com.mays.srm.dto.requestDTO.StatusRequestDTO;
+import com.mays.srm.dto.responseDTO.StatusResponseDTO;
 import com.mays.srm.entity.Status;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.StatusService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,57 +20,58 @@ import java.util.Optional;
 public class StatusServiceImpl implements StatusService {
 
     private final StatusDao repository;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public StatusServiceImpl(StatusDao repository) {
+    public StatusServiceImpl(StatusDao repository, ModelMapper modelMapper) {
         this.repository = repository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public Status create(Status entity) {
+    public StatusResponseDTO create(StatusRequestDTO requestDTO) {
         try {
-            return repository.save(entity);
-        } catch (DataIntegrityViolationException ex) {
-            throw ex;
+            Status status = modelMapper.map(requestDTO, Status.class);
+            Status savedStatus = repository.save(status);
+            return modelMapper.map(savedStatus, StatusResponseDTO.class);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Status", ex);
         }
     }
 
     @Override
-    public Optional<Status> getById(Integer id) {
+    public StatusResponseDTO getById(Integer id) {
         Optional<Status> statusOpt = repository.findById(id);
-        
         if (statusOpt.isPresent()) {
-            return statusOpt;
+            return modelMapper.map(statusOpt.get(), StatusResponseDTO.class);
         } else {
             throw new ResourceNotFoundException("Status not found with ID: " + id);
         }
     }
 
     @Override
-    public List<Status> getAll() {
-        return repository.findAll();
+    public List<StatusResponseDTO> getAll() {
+        List<Status> statusList = repository.findAll();
+        List<StatusResponseDTO> dtoList = new ArrayList<>();
+        for (Status status : statusList) {
+            dtoList.add(modelMapper.map(status, StatusResponseDTO.class));
+        }
+        return dtoList;
     }
 
     @Override
-    public Status update(Status entity) {
+    public StatusResponseDTO update(Integer id, StatusRequestDTO requestDTO) {
+        Optional<Status> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Status not found with ID: " + id);
+        }
+        
+        Status existingStatus = existingOpt.get();
+        modelMapper.map(requestDTO, existingStatus);
+        
         try {
-            if (entity.getStatusId() == null) {
-                throw new ResourceNotFoundException("Cannot update. Status ID is missing.");
-            }
-            
-            boolean exists = repository.existsById(entity.getStatusId());
-            if (exists == false) {
-                throw new ResourceNotFoundException("Cannot update. Status not found with ID: " + entity.getStatusId());
-            }
-            
-            return repository.save(entity);
-            
-        } catch (ResourceNotFoundException ex) {
-            throw ex;
-        } catch (DataIntegrityViolationException ex) {
-            throw ex;
+            Status updatedStatus = repository.save(existingStatus);
+            return modelMapper.map(updatedStatus, StatusResponseDTO.class);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Status", ex);
         }
@@ -74,16 +79,13 @@ public class StatusServiceImpl implements StatusService {
 
     @Override
     public void delete(Integer id) {
-        boolean exists = repository.existsById(id);
-        
-        if (exists == false) {
+        if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Status not found with ID: " + id);
         }
-        
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-             throw new DataIntegrityViolationException("Cannot delete Status because it is assigned to existing tickets or other records.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Status because it is currently in use.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Status with ID: " + id, ex);
         }

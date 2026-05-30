@@ -1,11 +1,7 @@
 package com.mays.srm.service;
 
-import com.mays.srm.entity.ChargeType;
-import java.util.List;
+import com.mays.srm.dto.requestDTO.ChargeTypeRequestDTO;
+import com.mays.srm.dto.responseDTO.ChargeTypeResponseDTO;
 
-public interface ChargeTypeService {
-    ChargeType createChargeType(ChargeType chargeType);
-    ChargeType getChargeTypeById(Integer id);
-    List<ChargeType> getAllChargeTypes();
-    void deleteChargeType(Integer id);
+public interface ChargeTypeService extends GenericService<ChargeTypeRequestDTO, ChargeTypeResponseDTO, Integer> {
 }

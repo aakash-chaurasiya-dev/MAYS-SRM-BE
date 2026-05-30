@@ -1,11 +1,7 @@
 package com.mays.srm.service;
 
-import com.mays.srm.entity.Device;
+import com.mays.srm.dto.requestDTO.DeviceRequestDTO;
+import com.mays.srm.dto.responseDTO.DeviceResponseDTO;
 
-import java.util.List;
-
-public interface DeviceService extends GenericService<Device, String> {
-    List<Device> findByModelName(String modelName);
-    List<Device> findByBrandName(String brandName);
-    List<Device> findByDeviceTypeName(String deviceType);
+public interface DeviceService extends GenericService<DeviceRequestDTO, DeviceResponseDTO, String> {
 }

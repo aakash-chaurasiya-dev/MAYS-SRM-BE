@@ -2,20 +2,22 @@ package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.BranchDao;
 import com.mays.srm.dao.core.BrandDao;
-import com.mays.srm.dao.core.DeviceTypeDao;
 import com.mays.srm.dao.core.InventoryDao;
+import com.mays.srm.dto.requestDTO.InventoryRequestDTO;
+import com.mays.srm.dto.responseDTO.InventoryResponseDTO;
 import com.mays.srm.entity.Branch;
 import com.mays.srm.entity.Brand;
 import com.mays.srm.entity.DeviceType;
 import com.mays.srm.entity.Inventory;
-import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.InventoryService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,29 +25,27 @@ import java.util.Optional;
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryDao repository;
-    private final DeviceTypeDao deviceTypeDao;
     private final BrandDao brandDao;
     private final BranchDao branchDao;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public InventoryServiceImpl(InventoryDao repository, DeviceTypeDao deviceTypeDao, BrandDao brandDao, BranchDao branchDao) {
+    public InventoryServiceImpl(InventoryDao repository, BrandDao brandDao, BranchDao branchDao, ModelMapper modelMapper) {
         this.repository = repository;
-        this.deviceTypeDao = deviceTypeDao;
         this.brandDao = brandDao;
         this.branchDao = branchDao;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public Inventory create(Inventory entity) {
+    public InventoryResponseDTO create(InventoryRequestDTO requestDTO) {
         try {
-            if (entity.getProductName() == null || entity.getProductName().trim().isEmpty()) {
-                throw new BadRequestException("Product name is required.");
-            }
+            Inventory inventory = modelMapper.map(requestDTO, Inventory.class);
+            validateAndSetRelations(inventory, requestDTO);
             
-            validateAndSetRelations(entity);
-
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            Inventory savedInventory = repository.save(inventory);
+            return mapToResponseDTO(savedInventory);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Inventory record", ex);
@@ -53,40 +53,42 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Optional<Inventory> getById(Integer id) {
+    public InventoryResponseDTO getById(Integer id) {
         Optional<Inventory> inventoryOpt = repository.findById(id);
         if (inventoryOpt.isPresent()) {
-            return inventoryOpt;
+            return mapToResponseDTO(inventoryOpt.get());
         } else {
             throw new ResourceNotFoundException("Inventory record not found with ID: " + id);
         }
     }
 
     @Override
-    public List<Inventory> getAll() {
-        return repository.findAll();
+    public List<InventoryResponseDTO> getAll() {
+        List<Inventory> inventoryList = repository.findAll();
+        List<InventoryResponseDTO> dtoList = new ArrayList<>();
+        for (Inventory inventory : inventoryList) {
+            dtoList.add(mapToResponseDTO(inventory));
+        }
+        return dtoList;
     }
 
     @Override
-    public Inventory update(Inventory entity) {
+    public InventoryResponseDTO update(Integer id, InventoryRequestDTO requestDTO) {
+        Optional<Inventory> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Inventory record not found with ID: " + id);
+        }
+        
+        Inventory existingInventory = existingOpt.get();
+        modelMapper.map(requestDTO, existingInventory);
+        
+        existingInventory.setProductId(id); // Ensure ID is not changed
+
         try {
-            if (entity.getProductId() == null) {
-                throw new ResourceNotFoundException("Cannot update. Inventory ID is missing.");
-            }
-            
-            boolean exists = repository.existsById(entity.getProductId());
-            if (!exists) {
-                throw new ResourceNotFoundException("Cannot update. Inventory record not found with ID: " + entity.getProductId());
-            }
-
-            if (entity.getProductName() == null || entity.getProductName().trim().isEmpty()) {
-                throw new BadRequestException("Product name is required.");
-            }
-
-            validateAndSetRelations(entity);
-
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            validateAndSetRelations(existingInventory, requestDTO);
+            Inventory updatedInventory = repository.save(existingInventory);
+            return mapToResponseDTO(updatedInventory);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Inventory record", ex);
@@ -95,52 +97,65 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public void delete(Integer id) {
-        boolean exists = repository.existsById(id);
-        if (!exists) {
+        if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Inventory record not found with ID: " + id);
         }
-        
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete Inventory record because it is currently assigned to a Billing record or Ticket.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Inventory record because it is currently assigned to a Billing record.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Inventory record with ID: " + id, ex);
         }
     }
 
-    /**
-     * Helper method to validate and set DeviceType, Brand, and Branch relations
-     */
-    private void validateAndSetRelations(Inventory entity) {
-        // Validate DeviceType
-        if (entity.getDeviceType() != null && entity.getDeviceType().getDeviceTypeId() != null) {
-            Optional<DeviceType> dtOpt = deviceTypeDao.findById(entity.getDeviceType().getDeviceTypeId());
-            if (dtOpt.isPresent()) {
-                entity.setDeviceType(dtOpt.get());
-            } else {
-                throw new ResourceNotFoundException("DeviceType not found with ID: " + entity.getDeviceType().getDeviceTypeId());
-            }
-        }
-
-        // Validate Brand
-        if (entity.getBrand() != null && entity.getBrand().getBrandId() != null) {
-            Optional<Brand> brandOpt = brandDao.findById(entity.getBrand().getBrandId());
+    private void validateAndSetRelations(Inventory inventory, InventoryRequestDTO requestDTO) {
+        // Set Brand and derive DeviceType from it
+        if (requestDTO.getBrandId() != null) {
+            Optional<Brand> brandOpt = brandDao.findById(requestDTO.getBrandId());
             if (brandOpt.isPresent()) {
-                entity.setBrand(brandOpt.get());
+                Brand brand = brandOpt.get();
+                inventory.setBrand(brand);
+                // Automatically set the DeviceType from the Brand
+                if (brand.getDeviceType() != null) {
+                    inventory.setDeviceType(brand.getDeviceType());
+                } else {
+                    // This case might indicate a data integrity issue (a brand should have a device type)
+                    inventory.setDeviceType(null);
+                }
             } else {
-                throw new ResourceNotFoundException("Brand not found with ID: " + entity.getBrand().getBrandId());
+                throw new ResourceNotFoundException("Brand not found with ID: " + requestDTO.getBrandId());
             }
+        } else {
+            inventory.setBrand(null);
+            inventory.setDeviceType(null);
         }
 
-        // Validate Branch
-        if (entity.getBranch() != null && entity.getBranch().getBranchId() != null) {
-            Optional<Branch> branchOpt = branchDao.findById(entity.getBranch().getBranchId());
+        // Set Branch
+        if (requestDTO.getBranchId() != null) {
+            Optional<Branch> branchOpt = branchDao.findById(requestDTO.getBranchId());
             if (branchOpt.isPresent()) {
-                entity.setBranch(branchOpt.get());
+                inventory.setBranch(branchOpt.get());
             } else {
-                throw new ResourceNotFoundException("Branch not found with ID: " + entity.getBranch().getBranchId());
+                throw new ResourceNotFoundException("Branch not found with ID: " + requestDTO.getBranchId());
             }
+        } else {
+            inventory.setBranch(null);
         }
+    }
+
+    private InventoryResponseDTO mapToResponseDTO(Inventory inventory) {
+        InventoryResponseDTO dto = modelMapper.map(inventory, InventoryResponseDTO.class);
+        
+        if (inventory.getDeviceType() != null) {
+            dto.setDeviceTypeName(inventory.getDeviceType().getDeviceTypeName());
+        }
+        if (inventory.getBrand() != null) {
+            dto.setBrandName(inventory.getBrand().getBrandName());
+        }
+        if (inventory.getBranch() != null) {
+            dto.setBranchName(inventory.getBranch().getBranchName());
+        }
+        return dto;
     }
 }

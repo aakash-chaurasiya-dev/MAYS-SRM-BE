@@ -2,55 +2,53 @@ package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.DeviceDao;
 import com.mays.srm.dao.core.DeviceModelDao;
+import com.mays.srm.dto.requestDTO.DeviceRequestDTO;
+import com.mays.srm.dto.responseDTO.DeviceResponseDTO;
 import com.mays.srm.entity.Device;
 import com.mays.srm.entity.DeviceModel;
-import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.DeviceService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class DeviceServiceImpl implements DeviceService {
 
-    private final DeviceDao deviceDao;
+    private final DeviceDao repository;
     private final DeviceModelDao deviceModelDao;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public DeviceServiceImpl(DeviceDao deviceDao, DeviceModelDao deviceModelDao) {
-        this.deviceDao = deviceDao;
+    public DeviceServiceImpl(DeviceDao repository, DeviceModelDao deviceModelDao, ModelMapper modelMapper) {
+        this.repository = repository;
         this.deviceModelDao = deviceModelDao;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public Device create(Device device) {
+    public DeviceResponseDTO create(DeviceRequestDTO requestDTO) {
         try {
-            if (device.getModel() != null) {
-                DeviceModel inputModel = device.getModel();
-
-                // Expecting existing model using ID
-                if (inputModel.getModelId() != null) {
-                    Optional<DeviceModel> modelOpt = deviceModelDao.findById(inputModel.getModelId());
-                    if (modelOpt.isPresent()) {
-                        device.setModel(modelOpt.get());
-                    } else {
-                        throw new ResourceNotFoundException("DeviceModel not found with ID: " + inputModel.getModelId());
-                    }
-                } 
-                else {
-                    throw new BadRequestException("Valid DeviceModel ID must be provided to create a device.");
+            Device device = modelMapper.map(requestDTO, Device.class);
+            
+            if (requestDTO.getModelId() != null) {
+                Optional<DeviceModel> modelOpt = deviceModelDao.findById(requestDTO.getModelId());
+                if (modelOpt.isPresent()) {
+                    device.setModel(modelOpt.get());
+                } else {
+                    throw new ResourceNotFoundException("Device Model not found with ID: " + requestDTO.getModelId());
                 }
-            } else {
-                throw new BadRequestException("Model information is required to create a device.");
             }
 
-            return deviceDao.save(device);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            Device savedDevice = repository.save(device);
+            return mapToResponseDTO(savedDevice);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Device", ex);
@@ -58,54 +56,52 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    public Optional<Device> getById(String id) {
-        Optional<Device> deviceOpt = deviceDao.findById(id);
-        
+    public DeviceResponseDTO getById(String id) {
+        Optional<Device> deviceOpt = repository.findById(id);
         if (deviceOpt.isPresent()) {
-            return deviceOpt;
+            return mapToResponseDTO(deviceOpt.get());
         } else {
-            throw new ResourceNotFoundException("Device not found with serial number: " + id);
+            throw new ResourceNotFoundException("Device not found with Serial No: " + id);
         }
     }
 
     @Override
-    public List<Device> getAll() {
-        return deviceDao.findAll();
+    public List<DeviceResponseDTO> getAll() {
+        List<Device> deviceList = repository.findAll();
+        List<DeviceResponseDTO> dtoList = new ArrayList<>();
+        for (Device device : deviceList) {
+            dtoList.add(mapToResponseDTO(device));
+        }
+        return dtoList;
     }
 
     @Override
-    public Device update(Device device) {
-        try {
-            if (device.getSerialNo() == null) {
-                throw new ResourceNotFoundException("Cannot update. Device serial number is missing.");
-            }
-            
-            boolean exists = deviceDao.existsById(device.getSerialNo());
-            if (!exists) {
-                throw new ResourceNotFoundException("Cannot update. Device not found with serial number: " + device.getSerialNo());
-            }
+    public DeviceResponseDTO update(String id, DeviceRequestDTO requestDTO) {
+        Optional<Device> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Device not found with Serial No: " + id);
+        }
+        
+        Device existingDevice = existingOpt.get();
+        modelMapper.map(requestDTO, existingDevice);
+        
+        // Ensure ID is not changed during update
+        existingDevice.setSerialNo(id);
 
-            if (device.getModel() != null) {
-                DeviceModel inputModel = device.getModel();
-
-                // Expecting existing model using ID
-                if (inputModel.getModelId() != null) {
-                    Optional<DeviceModel> modelOpt = deviceModelDao.findById(inputModel.getModelId());
-                    if (modelOpt.isPresent()) {
-                        device.setModel(modelOpt.get());
-                    } else {
-                        throw new ResourceNotFoundException("DeviceModel not found with ID: " + inputModel.getModelId());
-                    }
-                } else {
-                    throw new BadRequestException("Valid DeviceModel ID must be provided to update a device.");
-                }
+        if (requestDTO.getModelId() != null) {
+            Optional<DeviceModel> modelOpt = deviceModelDao.findById(requestDTO.getModelId());
+            if (modelOpt.isPresent()) {
+                existingDevice.setModel(modelOpt.get());
             } else {
-                throw new BadRequestException("Model information is required to update a device.");
+                throw new ResourceNotFoundException("Device Model not found with ID: " + requestDTO.getModelId());
             }
-
-            return deviceDao.save(device);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
-            throw ex;
+        } else {
+            existingDevice.setModel(null);
+        }
+        
+        try {
+            Device updatedDevice = repository.save(existingDevice);
+            return mapToResponseDTO(updatedDevice);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Device", ex);
         }
@@ -113,46 +109,26 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public void delete(String id) {
-        boolean exists = deviceDao.existsById(id);
-        
-        if (!exists) {
-            throw new ResourceNotFoundException("Cannot delete. Device not found with serial number: " + id);
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("Cannot delete. Device not found with Serial No: " + id);
         }
-        
         try {
-            deviceDao.deleteById(id);
+            repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete Device because it is assigned to existing tickets or other records.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Device because it is currently linked to tickets.", ex);
         } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while deleting Device with serial number: " + id, ex);
+            throw new InternalServerException("Error occurred while deleting Device with Serial No: " + id, ex);
         }
     }
 
-
-    @Override
-    public List<Device> findByModelName(String modelName) {
-        List<Device> devices = deviceDao.findByModelName(modelName);
-        if (devices.isEmpty()) {
-            throw new ResourceNotFoundException("No devices found with model name: " + modelName);
+    private DeviceResponseDTO mapToResponseDTO(Device device) {
+        DeviceResponseDTO dto = modelMapper.map(device, DeviceResponseDTO.class);
+        if (device.getModel() != null) {
+            dto.setModelName(device.getModel().getModelName());
+            if (device.getModel().getBrand() != null) {
+                dto.setBrandName(device.getModel().getBrand().getBrandName());
+            }
         }
-        return devices;
-    }
-
-    @Override
-    public List<Device> findByBrandName(String brandName) {
-        List<Device> devices = deviceDao.findByBrandName(brandName);
-        if (devices.isEmpty()) {
-            throw new ResourceNotFoundException("No devices found with brand name: " + brandName);
-        }
-        return devices;
-    }
-
-    @Override
-    public List<Device> findByDeviceTypeName(String deviceType) {
-        List<Device> devices = deviceDao.findByDeviceTypeName(deviceType);
-        if (devices.isEmpty()) {
-            throw new ResourceNotFoundException("No devices found with device type: " + deviceType);
-        }
-        return devices;
+        return dto;
     }
 }

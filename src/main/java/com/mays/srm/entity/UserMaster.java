@@ -14,7 +14,7 @@ public class UserMaster {
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String userId;
+    private Integer userId;
 
     @Column(name = "mobile_no", unique = true)
     private String mobileNo;

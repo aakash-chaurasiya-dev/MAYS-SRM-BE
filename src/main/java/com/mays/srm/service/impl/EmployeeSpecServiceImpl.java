@@ -3,18 +3,21 @@ package com.mays.srm.service.impl;
 import com.mays.srm.dao.core.DeviceTypeDao;
 import com.mays.srm.dao.core.EmployeeDao;
 import com.mays.srm.dao.core.EmployeeSpecDao;
+import com.mays.srm.dto.requestDTO.EmployeeSpecRequestDTO;
+import com.mays.srm.dto.responseDTO.EmployeeSpecResponseDTO;
 import com.mays.srm.entity.DeviceType;
 import com.mays.srm.entity.Employee;
 import com.mays.srm.entity.EmployeeSpec;
 import com.mays.srm.entity.EmployeeSpecId;
-import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.EmployeeSpecService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,99 +27,75 @@ public class EmployeeSpecServiceImpl implements EmployeeSpecService {
     private final EmployeeSpecDao repository;
     private final EmployeeDao employeeDao;
     private final DeviceTypeDao deviceTypeDao;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public EmployeeSpecServiceImpl(EmployeeSpecDao repository, EmployeeDao employeeDao, DeviceTypeDao deviceTypeDao) {
+    public EmployeeSpecServiceImpl(EmployeeSpecDao repository, EmployeeDao employeeDao, DeviceTypeDao deviceTypeDao, ModelMapper modelMapper) {
         this.repository = repository;
         this.employeeDao = employeeDao;
         this.deviceTypeDao = deviceTypeDao;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public EmployeeSpec create(EmployeeSpec entity) {
+    public EmployeeSpecResponseDTO create(EmployeeSpecRequestDTO requestDTO) {
         try {
-            if (entity.getEmployee() != null && entity.getEmployee().getEmployeeId() != null) {
-                Optional<Employee> empOpt = employeeDao.findById(entity.getEmployee().getEmployeeId());
-                if (empOpt.isPresent()) {
-                    entity.setEmployee(empOpt.get());
-                } else {
-                    throw new ResourceNotFoundException("Employee not found with ID: " + entity.getEmployee().getEmployeeId());
-                }
-            } else {
-                throw new BadRequestException("Valid Employee ID must be provided.");
+            EmployeeSpec employeeSpec = new EmployeeSpec();
+            
+            Optional<Employee> empOpt = employeeDao.findById(requestDTO.getEmployeeId());
+            if (empOpt.isEmpty()) {
+                throw new ResourceNotFoundException("Employee not found with ID: " + requestDTO.getEmployeeId());
             }
+            employeeSpec.setEmployee(empOpt.get());
 
-            if (entity.getDeviceType() != null && entity.getDeviceType().getDeviceTypeId() != null) {
-                Optional<DeviceType> dtOpt = deviceTypeDao.findById(entity.getDeviceType().getDeviceTypeId());
-                if (dtOpt.isPresent()) {
-                    entity.setDeviceType(dtOpt.get());
-                } else {
-                    throw new ResourceNotFoundException("DeviceType not found with ID: " + entity.getDeviceType().getDeviceTypeId());
-                }
-            } else {
-                throw new BadRequestException("Valid DeviceType ID must be provided.");
+            Optional<DeviceType> dtOpt = deviceTypeDao.findById(requestDTO.getDeviceTypeId());
+            if (dtOpt.isEmpty()) {
+                throw new ResourceNotFoundException("DeviceType not found with ID: " + requestDTO.getDeviceTypeId());
             }
+            employeeSpec.setDeviceType(dtOpt.get());
 
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            EmployeeSpec savedSpec = repository.save(employeeSpec);
+            return mapToResponseDTO(savedSpec);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while creating EmployeeSpec", ex);
+            throw new InternalServerException("Error occurred while creating Employee Specialization", ex);
         }
     }
 
     @Override
-    public Optional<EmployeeSpec> getById(EmployeeSpecId id) {
-        Optional<EmployeeSpec> specOpt = repository.findById(id);
-        if (specOpt.isPresent()) {
-            return specOpt;
-        } else {
-            throw new ResourceNotFoundException("EmployeeSpec not found for given Employee and DeviceType.");
+    public List<EmployeeSpecResponseDTO> getAll() {
+        List<EmployeeSpec> specList = repository.findAll();
+        List<EmployeeSpecResponseDTO> dtoList = new ArrayList<>();
+        for (EmployeeSpec spec : specList) {
+            dtoList.add(mapToResponseDTO(spec));
         }
+        return dtoList;
     }
 
     @Override
-    public List<EmployeeSpec> getAll() {
-        return repository.findAll();
-    }
-
-    @Override
-    public EmployeeSpec update(EmployeeSpec entity) {
-        try {
-            if (entity.getEmployee() == null || entity.getEmployee().getEmployeeId() == null ||
-                entity.getDeviceType() == null || entity.getDeviceType().getDeviceTypeId() == null) {
-                throw new BadRequestException("Employee ID and DeviceType ID must be provided to update.");
-            }
-
-            EmployeeSpecId id = new EmployeeSpecId(entity.getEmployee().getEmployeeId(), entity.getDeviceType().getDeviceTypeId());
-            boolean exists = repository.existsById(id);
-            if (!exists) {
-                throw new ResourceNotFoundException("Cannot update. EmployeeSpec not found.");
-            }
-
-            // Since it's a join table with no extra columns, 'update' essentially does nothing new,
-            // but we'll leave it implemented for standard CRUD support.
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while updating EmployeeSpec", ex);
+    public void delete(Integer employeeId, Integer deviceTypeId) {
+        EmployeeSpecId id = new EmployeeSpecId(employeeId, deviceTypeId);
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("Employee Specialization not found.");
         }
-    }
-
-    @Override
-    public void delete(EmployeeSpecId id) {
-        boolean exists = repository.existsById(id);
-        if (!exists) {
-            throw new ResourceNotFoundException("Cannot delete. EmployeeSpec not found.");
-        }
-        
         try {
             repository.deleteById(id);
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete EmployeeSpec due to database constraint.", ex);
         } catch (Exception ex) {
-            throw new InternalServerException("Error occurred while deleting EmployeeSpec.", ex);
+            throw new InternalServerException("Error occurred while deleting Employee Specialization", ex);
         }
+    }
+
+    private EmployeeSpecResponseDTO mapToResponseDTO(EmployeeSpec spec) {
+        EmployeeSpecResponseDTO dto = new EmployeeSpecResponseDTO();
+        if (spec.getEmployee() != null) {
+            dto.setEmployeeId(spec.getEmployee().getEmployeeId());
+            dto.setEmployeeName(spec.getEmployee().getEmployeeName());
+        }
+        if (spec.getDeviceType() != null) {
+            dto.setDeviceTypeId(spec.getDeviceType().getDeviceTypeId());
+            dto.setDeviceTypeName(spec.getDeviceType().getDeviceTypeName());
+        }
+        return dto;
     }
 }

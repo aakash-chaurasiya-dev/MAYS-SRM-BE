@@ -1,21 +1,48 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.ServiceCharges;
-import com.mays.srm.service.GenericService;
+import com.mays.srm.dto.requestDTO.ServiceChargesRequestDTO;
+import com.mays.srm.dto.responseDTO.ServiceChargesResponseDTO;
 import com.mays.srm.service.ServiceChargesService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/service-charges")
-public class ServiceChargesController extends AbstractController<ServiceCharges, Integer> {
+public class ServiceChargesController {
 
     @Autowired
-    private ServiceChargesService service;
+    private ServiceChargesService serviceChargesService;
 
-    @Override
-    protected GenericService<ServiceCharges, Integer> getService() {
-        return service;
+    @PostMapping
+    public ResponseEntity<ServiceChargesResponseDTO> createServiceCharge(@RequestBody ServiceChargesRequestDTO requestDTO) {
+        ServiceChargesResponseDTO responseDTO = serviceChargesService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ServiceChargesResponseDTO> getServiceChargeById(@PathVariable Integer id) {
+        ServiceChargesResponseDTO responseDTO = serviceChargesService.getById(id);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ServiceChargesResponseDTO>> getAllServiceCharges() {
+        List<ServiceChargesResponseDTO> responseDTOs = serviceChargesService.getAll();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ServiceChargesResponseDTO> updateServiceCharge(@PathVariable Integer id, @RequestBody ServiceChargesRequestDTO requestDTO) {
+        ServiceChargesResponseDTO updatedDto = serviceChargesService.update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteServiceCharge(@PathVariable Integer id) {
+        serviceChargesService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -4,19 +4,22 @@ import com.mays.srm.dao.core.BrandDao;
 import com.mays.srm.dao.core.EnquiryDao;
 import com.mays.srm.dao.core.StatusDao;
 import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.dto.requestDTO.EnquiryRequestDTO;
+import com.mays.srm.dto.responseDTO.EnquiryResponseDTO;
 import com.mays.srm.entity.Brand;
 import com.mays.srm.entity.Enquiry;
 import com.mays.srm.entity.Status;
 import com.mays.srm.entity.UserMaster;
-import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.EnquiryService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,30 +27,30 @@ import java.util.Optional;
 public class EnquiryServiceImpl implements EnquiryService {
 
     private final EnquiryDao repository;
-    private final StatusDao statusDao;
     private final UserMasterDao userMasterDao;
     private final BrandDao brandDao;
+    private final StatusDao statusDao;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public EnquiryServiceImpl(EnquiryDao repository, StatusDao statusDao, UserMasterDao userMasterDao, BrandDao brandDao) {
+    public EnquiryServiceImpl(EnquiryDao repository, UserMasterDao userMasterDao, BrandDao brandDao, StatusDao statusDao, ModelMapper modelMapper) {
         this.repository = repository;
-        this.statusDao = statusDao;
         this.userMasterDao = userMasterDao;
         this.brandDao = brandDao;
+        this.statusDao = statusDao;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public Enquiry create(Enquiry entity) {
+    public EnquiryResponseDTO create(EnquiryRequestDTO requestDTO) {
         try {
-            validateAndSetRelations(entity);
+            Enquiry enquiry = modelMapper.map(requestDTO, Enquiry.class);
+            enquiry.setTimestamp(LocalDateTime.now());
+            validateAndSetRelations(enquiry, requestDTO);
             
-            // Automatically set the timestamp for new enquiries if not provided
-            if (entity.getTimestamp() == null) {
-                entity.setTimestamp(LocalDateTime.now());
-            }
-
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            Enquiry savedEnquiry = repository.save(enquiry);
+            return mapToResponseDTO(savedEnquiry);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Enquiry", ex);
@@ -55,37 +58,41 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
-    public Optional<Enquiry> getById(Integer id) {
+    public EnquiryResponseDTO getById(Integer id) {
         Optional<Enquiry> enquiryOpt = repository.findById(id);
-        
         if (enquiryOpt.isPresent()) {
-            return enquiryOpt;
+            return mapToResponseDTO(enquiryOpt.get());
         } else {
             throw new ResourceNotFoundException("Enquiry not found with ID: " + id);
         }
     }
 
     @Override
-    public List<Enquiry> getAll() {
-        return repository.findAll();
+    public List<EnquiryResponseDTO> getAll() {
+        List<Enquiry> enquiryList = repository.findAll();
+        List<EnquiryResponseDTO> dtoList = new ArrayList<>();
+        for (Enquiry enquiry : enquiryList) {
+            dtoList.add(mapToResponseDTO(enquiry));
+        }
+        return dtoList;
     }
 
     @Override
-    public Enquiry update(Enquiry entity) {
+    public EnquiryResponseDTO update(Integer id, EnquiryRequestDTO requestDTO) {
+        Optional<Enquiry> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Enquiry not found with ID: " + id);
+        }
+        
+        Enquiry existingEnquiry = existingOpt.get();
+        modelMapper.map(requestDTO, existingEnquiry);
+        existingEnquiry.setEnquiryId(id);
+
         try {
-            if (entity.getEnquiryId() == null) {
-                throw new ResourceNotFoundException("Cannot update. Enquiry ID is missing.");
-            }
-            
-            boolean exists = repository.existsById(entity.getEnquiryId());
-            if (!exists) {
-                throw new ResourceNotFoundException("Cannot update. Enquiry not found with ID: " + entity.getEnquiryId());
-            }
-
-            validateAndSetRelations(entity);
-
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            validateAndSetRelations(existingEnquiry, requestDTO);
+            Enquiry updatedEnquiry = repository.save(existingEnquiry);
+            return mapToResponseDTO(updatedEnquiry);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Enquiry", ex);
@@ -94,60 +101,62 @@ public class EnquiryServiceImpl implements EnquiryService {
 
     @Override
     public void delete(Integer id) {
-        boolean exists = repository.existsById(id);
-        if (!exists) {
+        if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Enquiry not found with ID: " + id);
         }
-        
         try {
             repository.deleteById(id);
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete Enquiry due to database constraints.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Enquiry with ID: " + id, ex);
         }
     }
 
-    /**
-     * Helper method to validate and set User, Brand, and Status relations
-     */
-    private void validateAndSetRelations(Enquiry entity) {
-        // Validate User
-        if (entity.getUser() != null && entity.getUser().getUserId() != null) {
-            Optional<UserMaster> userOpt = userMasterDao.findById(entity.getUser().getUserId());
+    private void validateAndSetRelations(Enquiry enquiry, EnquiryRequestDTO requestDTO) {
+        if (requestDTO.getUserId() != null) {
+            Optional<UserMaster> userOpt = userMasterDao.findById(requestDTO.getUserId());
             if (userOpt.isPresent()) {
-                entity.setUser(userOpt.get());
+                enquiry.setUser(userOpt.get());
             } else {
-                throw new ResourceNotFoundException("User not found with ID: " + entity.getUser().getUserId());
+                throw new ResourceNotFoundException("User not found with ID: " + requestDTO.getUserId());
             }
-        } else {
-             // Enquiries might be allowed without a user? If a User is MANDATORY, uncomment the throw below:
-              throw new BadRequestException("User ID is required to create/update an Enquiry.");
         }
 
-        // Validate Brand
-        if (entity.getBrand() != null && entity.getBrand().getBrandId() != null) {
-            Optional<Brand> brandOpt = brandDao.findById(entity.getBrand().getBrandId());
+        if (requestDTO.getBrandId() != null) {
+            Optional<Brand> brandOpt = brandDao.findById(requestDTO.getBrandId());
             if (brandOpt.isPresent()) {
-                entity.setBrand(brandOpt.get());
+                enquiry.setBrand(brandOpt.get());
             } else {
-                throw new ResourceNotFoundException("Brand not found with ID: " + entity.getBrand().getBrandId());
+                throw new ResourceNotFoundException("Brand not found with ID: " + requestDTO.getBrandId());
             }
         }
 
-        // Validate Status
-        if (entity.getStatus() != null && entity.getStatus().getStatusId() != null) {
-            Optional<Status> statusOpt = statusDao.findById(entity.getStatus().getStatusId());
+        if (requestDTO.getStatusId() != null) {
+            Optional<Status> statusOpt = statusDao.findById(requestDTO.getStatusId());
             if (statusOpt.isPresent()) {
-                Status dbStatus = statusOpt.get();
-                // Ensure the status is specifically meant for an "enquiry"
-                if (!"enquiry".equalsIgnoreCase(dbStatus.getStatusType())) {
-                    throw new BadRequestException("Status must be of type 'enquiry'");
+                if ("ENQUIRY".equalsIgnoreCase(statusOpt.get().getStatusType())) {
+                    enquiry.setStatus(statusOpt.get());
                 }
-                entity.setStatus(dbStatus);
+                else {
+                    throw new ResourceNotFoundException("Status has to be of type enquiry: " + requestDTO.getStatusId());
+                }
             } else {
-                throw new ResourceNotFoundException("Status not found with ID: " + entity.getStatus().getStatusId());
+                throw new ResourceNotFoundException("Status not found with ID: " + requestDTO.getStatusId());
             }
         }
+    }
+
+    private EnquiryResponseDTO mapToResponseDTO(Enquiry enquiry) {
+        EnquiryResponseDTO dto = modelMapper.map(enquiry, EnquiryResponseDTO.class);
+        if (enquiry.getUser() != null) {
+            dto.setUserFirstName(enquiry.getUser().getFirstName());
+            dto.setUserLastName(enquiry.getUser().getLastName());
+        }
+        if (enquiry.getBrand() != null) {
+            dto.setBrandName(enquiry.getBrand().getBrandName());
+        }
+        if (enquiry.getStatus() != null) {
+            dto.setStatusName(enquiry.getStatus().getStatusName());
+        }
+        return dto;
     }
 }

@@ -2,16 +2,20 @@ package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.BranchDao;
 import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.dto.requestDTO.UserMasterRequestDTO;
+import com.mays.srm.dto.responseDTO.UserMasterResponseDTO;
 import com.mays.srm.entity.Branch;
 import com.mays.srm.entity.UserMaster;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.UserMasterService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,79 +25,94 @@ public class UserMasterServiceImpl implements UserMasterService {
     private final UserMasterDao repository;
     private final BranchDao branchDao;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public UserMasterServiceImpl(UserMasterDao repository, BranchDao branchDao, PasswordEncoder passwordEncoder) {
+    public UserMasterServiceImpl(UserMasterDao repository, BranchDao branchDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.repository = repository;
         this.branchDao = branchDao;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public UserMaster create(UserMaster entity) {
+    public UserMasterResponseDTO create(UserMasterRequestDTO requestDTO) {
         try {
-            // Check if branch needs to be fetched and linked
-            if (entity.getBranch() != null && entity.getBranch().getBranchId() != null) {
-                Optional<Branch> branchOpt = branchDao.findById(entity.getBranch().getBranchId());
-                
+            UserMaster user = modelMapper.map(requestDTO, UserMaster.class);
+            
+            if (requestDTO.getBranchId() != null) {
+                Optional<Branch> branchOpt = branchDao.findById(requestDTO.getBranchId());
                 if (branchOpt.isPresent()) {
-                    entity.setBranch(branchOpt.get());
+                    user.setBranch(branchOpt.get());
                 } else {
-                    throw new ResourceNotFoundException("Branch not found with ID: " + entity.getBranch().getBranchId());
+                    throw new ResourceNotFoundException("Branch not found with ID: " + requestDTO.getBranchId());
                 }
             }
 
-            // Encode password before saving
-            if (entity.getPassword() != null) {
-                entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+            if (user.getPassword() != null) {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
             }
 
-            return repository.save(entity);
+            UserMaster savedUser = repository.save(user);
+            return mapToResponseDTO(savedUser);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
-            throw ex; // Re-throw specifically so GlobalExceptionHandler catches them properly
+            throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating User", ex);
         }
     }
 
     @Override
-    public Optional<UserMaster> getById(String id) {
-        Optional<UserMaster> user = repository.findById(id);
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException("User not found with ID (mobileNo): " + id);
+    public UserMasterResponseDTO getById(Integer id) {
+        Optional<UserMaster> userOpt = repository.findById(id);
+        if (userOpt.isPresent()) {
+            return mapToResponseDTO(userOpt.get());
+        } else {
+            throw new ResourceNotFoundException("User not found with ID: " + id);
         }
-        return user;
     }
 
     @Override
-    public List<UserMaster> getAll() {
-        return repository.findAll();
+    public List<UserMasterResponseDTO> getAll() {
+        List<UserMaster> userList = repository.findAll();
+        List<UserMasterResponseDTO> dtoList = new ArrayList<>();
+        for (UserMaster user : userList) {
+            dtoList.add(mapToResponseDTO(user));
+        }
+        return dtoList;
     }
 
     @Override
-    public UserMaster update(UserMaster entity) {
+    public UserMasterResponseDTO update(Integer id, UserMasterRequestDTO requestDTO) {
         try {
-            if (entity.getUserId() == null || !repository.existsById(entity.getUserId())) {
-                throw new ResourceNotFoundException("Cannot update. User not found with ID: " + entity.getUserId());
+            Optional<UserMaster> existingUserOpt = repository.findById(id);
+            if (existingUserOpt.isEmpty()) {
+                throw new ResourceNotFoundException("Cannot update. User not found with ID: " + id);
+            }
+            
+            UserMaster existingUser = existingUserOpt.get();
+            String currentPassword = existingUser.getPassword();
+            modelMapper.map(requestDTO, existingUser);
+            
+            if (requestDTO.getPassword() == null || requestDTO.getPassword().isEmpty()) {
+                existingUser.setPassword(currentPassword);
+            } else if (!requestDTO.getPassword().startsWith("$2a$")) {
+                existingUser.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
             }
 
-            // Handle branch linking
-            if (entity.getBranch() != null && entity.getBranch().getBranchId() != null) {
-                Optional<Branch> branchOpt = branchDao.findById(entity.getBranch().getBranchId());
-                
+            if (requestDTO.getBranchId() != null) {
+                Optional<Branch> branchOpt = branchDao.findById(requestDTO.getBranchId());
                 if (branchOpt.isPresent()) {
-                    entity.setBranch(branchOpt.get());
+                    existingUser.setBranch(branchOpt.get());
                 } else {
-                    throw new ResourceNotFoundException("Branch not found with ID: " + entity.getBranch().getBranchId());
+                    throw new ResourceNotFoundException("Branch not found with ID: " + requestDTO.getBranchId());
                 }
+            } else {
+                existingUser.setBranch(null);
             }
 
-            // Encode password if it is being changed
-            if (entity.getPassword() != null && !entity.getPassword().startsWith("$2a$")) {
-                entity.setPassword(passwordEncoder.encode(entity.getPassword()));
-            }
-
-            return repository.save(entity);
+            UserMaster updatedUser = repository.save(existingUser);
+            return mapToResponseDTO(updatedUser);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -102,65 +121,73 @@ public class UserMasterServiceImpl implements UserMasterService {
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. User not found with ID: " + id);
         }
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete User because they are currently assigned to active tickets or enquiries.", ex);
+            throw new DataIntegrityViolationException("Cannot delete User because they are assigned to active records.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting User with ID: " + id, ex);
         }
     }
 
+    // --- Custom Find Methods ---
+
     @Override
-    public UserMaster findByMobileNo(String mobileNo) {
+    public UserMasterResponseDTO findByMobileNo(String mobileNo) {
         Optional<UserMaster> userOpt = repository.findByMobileNo(mobileNo);
-        
         if (userOpt.isPresent()) {
-            return userOpt.get();
+            return mapToResponseDTO(userOpt.get());
         } else {
             throw new ResourceNotFoundException("User not found with mobile number: " + mobileNo);
         }
     }
 
     @Override
-    public UserMaster findByEmail(String email) {
+    public UserMasterResponseDTO findByEmail(String email) {
         Optional<UserMaster> userOpt = repository.findByEmailId(email);
-        
         if (userOpt.isPresent()) {
-            return userOpt.get();
+            return mapToResponseDTO(userOpt.get());
         } else {
             throw new ResourceNotFoundException("User not found with email: " + email);
         }
     }
 
     @Override
-    public List<UserMaster> findByFirstName(String firstName) {
-        List<UserMaster> users = repository.findByFirstName(firstName);
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("No users found with first name: " + firstName);
+    public List<UserMasterResponseDTO> findByFirstName(String firstName) {
+        List<UserMaster> userList = repository.findByFirstName(firstName);
+        List<UserMasterResponseDTO> dtoList = new ArrayList<>();
+        for (UserMaster user : userList) {
+            dtoList.add(mapToResponseDTO(user));
         }
-        return users;
+        return dtoList;
     }
 
     @Override
-    public List<UserMaster> findByLastName(String lastName) {
-        List<UserMaster> users = repository.findByLastName(lastName);
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("No users found with last name: " + lastName);
+    public List<UserMasterResponseDTO> findByLastName(String lastName) {
+        List<UserMaster> userList = repository.findByLastName(lastName);
+        List<UserMasterResponseDTO> dtoList = new ArrayList<>();
+        for (UserMaster user : userList) {
+            dtoList.add(mapToResponseDTO(user));
         }
-        return users;
+        return dtoList;
     }
 
     @Override
-    public List<UserMaster> findByBranchName(String branchName) {
-        List<UserMaster> users = repository.findByBranchBranchName(branchName);
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("No users found in branch: " + branchName);
+    public List<UserMasterResponseDTO> findByBranchName(String branchName) {
+        throw new UnsupportedOperationException("Finding users by branch name is not yet implemented.");
+    }
+
+    // --- Helper Methods ---
+
+    private UserMasterResponseDTO mapToResponseDTO(UserMaster user) {
+        UserMasterResponseDTO dto = modelMapper.map(user, UserMasterResponseDTO.class);
+        if (user.getBranch() != null) {
+            dto.setBranchName(user.getBranch().getBranchName());
         }
-        return users;
+        return dto;
     }
 }

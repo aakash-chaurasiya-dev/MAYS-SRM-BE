@@ -4,18 +4,21 @@ import com.mays.srm.dao.core.DeviceTypeDao;
 import com.mays.srm.dao.core.PartsDao;
 import com.mays.srm.dao.core.StatusDao;
 import com.mays.srm.dao.core.TicketDao;
+import com.mays.srm.dto.requestDTO.PartsRequestDTO;
+import com.mays.srm.dto.responseDTO.PartsResponseDTO;
 import com.mays.srm.entity.DeviceType;
 import com.mays.srm.entity.Parts;
 import com.mays.srm.entity.Status;
 import com.mays.srm.entity.Ticket;
-import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.PartsService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,24 +26,28 @@ import java.util.Optional;
 public class PartsServiceImpl implements PartsService {
 
     private final PartsDao repository;
-    private final StatusDao statusDao;
     private final TicketDao ticketDao;
     private final DeviceTypeDao deviceTypeDao;
+    private final StatusDao statusDao;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public PartsServiceImpl(PartsDao repository, StatusDao statusDao, TicketDao ticketDao, DeviceTypeDao deviceTypeDao) {
+    public PartsServiceImpl(PartsDao repository, TicketDao ticketDao, DeviceTypeDao deviceTypeDao, StatusDao statusDao, ModelMapper modelMapper) {
         this.repository = repository;
-        this.statusDao = statusDao;
         this.ticketDao = ticketDao;
         this.deviceTypeDao = deviceTypeDao;
+        this.statusDao = statusDao;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public Parts create(Parts entity) {
+    public PartsResponseDTO create(PartsRequestDTO requestDTO) {
         try {
-            validateAndSetRelations(entity);
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            Parts part = modelMapper.map(requestDTO, Parts.class);
+            validateAndSetRelations(part, requestDTO);
+            Parts savedPart = repository.save(part);
+            return mapToResponseDTO(savedPart);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Part", ex);
@@ -48,36 +55,41 @@ public class PartsServiceImpl implements PartsService {
     }
 
     @Override
-    public Optional<Parts> getById(Integer id) {
+    public PartsResponseDTO getById(Integer id) {
         Optional<Parts> partOpt = repository.findById(id);
         if (partOpt.isPresent()) {
-            return partOpt;
+            return mapToResponseDTO(partOpt.get());
         } else {
             throw new ResourceNotFoundException("Part not found with ID: " + id);
         }
     }
 
     @Override
-    public List<Parts> getAll() {
-        return repository.findAll();
+    public List<PartsResponseDTO> getAll() {
+        List<Parts> partsList = repository.findAll();
+        List<PartsResponseDTO> dtoList = new ArrayList<>();
+        for (Parts part : partsList) {
+            dtoList.add(mapToResponseDTO(part));
+        }
+        return dtoList;
     }
 
     @Override
-    public Parts update(Parts entity) {
+    public PartsResponseDTO update(Integer id, PartsRequestDTO requestDTO) {
+        Optional<Parts> existingOpt = repository.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Cannot update. Part not found with ID: " + id);
+        }
+        
+        Parts existingPart = existingOpt.get();
+        modelMapper.map(requestDTO, existingPart);
+        existingPart.setPartId(id);
+
         try {
-            if (entity.getPartId() == null) {
-                throw new ResourceNotFoundException("Cannot update. Part ID is missing.");
-            }
-            
-            boolean exists = repository.existsById(entity.getPartId());
-            if (!exists) {
-                throw new ResourceNotFoundException("Cannot update. Part not found with ID: " + entity.getPartId());
-            }
-
-            validateAndSetRelations(entity);
-
-            return repository.save(entity);
-        } catch (ResourceNotFoundException | BadRequestException | DataIntegrityViolationException ex) {
+            validateAndSetRelations(existingPart, requestDTO);
+            Parts updatedPart = repository.save(existingPart);
+            return mapToResponseDTO(updatedPart);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Part", ex);
@@ -86,57 +98,61 @@ public class PartsServiceImpl implements PartsService {
 
     @Override
     public void delete(Integer id) {
-        boolean exists = repository.existsById(id);
-        if (!exists) {
+        if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Part not found with ID: " + id);
         }
-        
         try {
             repository.deleteById(id);
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete Part due to database constraints.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Part with ID: " + id, ex);
         }
     }
 
-    /**
-     * Helper method to validate and set Status, Ticket, and DeviceType relations
-     */
-    private void validateAndSetRelations(Parts entity) {
-        // Validate Ticket
-        if (entity.getTicket() != null && entity.getTicket().getTicketId() != null) {
-            Optional<Ticket> ticketOpt = ticketDao.findById(entity.getTicket().getTicketId());
+    private void validateAndSetRelations(Parts part, PartsRequestDTO requestDTO) {
+        if (requestDTO.getTicketId() != null) {
+            Optional<Ticket> ticketOpt = ticketDao.findById(requestDTO.getTicketId());
             if (ticketOpt.isPresent()) {
-                entity.setTicket(ticketOpt.get());
+                part.setTicket(ticketOpt.get());
             } else {
-                throw new ResourceNotFoundException("Ticket not found with ID: " + entity.getTicket().getTicketId());
+                throw new ResourceNotFoundException("Ticket not found with ID: " + requestDTO.getTicketId());
             }
         }
 
-        // Validate DeviceType
-        if (entity.getDeviceType() != null && entity.getDeviceType().getDeviceTypeId() != null) {
-            Optional<DeviceType> dtOpt = deviceTypeDao.findById(entity.getDeviceType().getDeviceTypeId());
+        if (requestDTO.getDeviceTypeId() != null) {
+            Optional<DeviceType> dtOpt = deviceTypeDao.findById(requestDTO.getDeviceTypeId());
             if (dtOpt.isPresent()) {
-                entity.setDeviceType(dtOpt.get());
+                part.setDeviceType(dtOpt.get());
             } else {
-                throw new ResourceNotFoundException("DeviceType not found with ID: " + entity.getDeviceType().getDeviceTypeId());
+                throw new ResourceNotFoundException("DeviceType not found with ID: " + requestDTO.getDeviceTypeId());
             }
         }
 
-        // Validate Status
-        if (entity.getStatus() != null && entity.getStatus().getStatusId() != null) {
-            Optional<Status> statusOpt = statusDao.findById(entity.getStatus().getStatusId());
+        if (requestDTO.getStatusId() != null) {
+            Optional<Status> statusOpt = statusDao.findById(requestDTO.getStatusId());
             if (statusOpt.isPresent()) {
-                Status dbStatus = statusOpt.get();
-                // Ensure the status is specifically meant for "parts"
-                if (!"parts".equalsIgnoreCase(dbStatus.getStatusType())) {
-                    throw new BadRequestException("Status must be of type 'parts'");
+                if ("PARTS".equalsIgnoreCase(statusOpt.get().getStatusType())) {
+                    part.setStatus(statusOpt.get());
                 }
-                entity.setStatus(dbStatus);
+                else {
+                    throw new ResourceNotFoundException("Status has to be of type parts: " + requestDTO.getStatusId());
+                }
             } else {
-                throw new ResourceNotFoundException("Status not found with ID: " + entity.getStatus().getStatusId());
+                throw new ResourceNotFoundException("Status not found with ID: " + requestDTO.getStatusId());
             }
         }
+    }
+
+    private PartsResponseDTO mapToResponseDTO(Parts part) {
+        PartsResponseDTO dto = modelMapper.map(part, PartsResponseDTO.class);
+        if (part.getTicket() != null) {
+            dto.setTicketId(part.getTicket().getTicketId());
+        }
+        if (part.getDeviceType() != null) {
+            dto.setDeviceTypeName(part.getDeviceType().getDeviceTypeName());
+        }
+        if (part.getStatus() != null) {
+            dto.setStatusName(part.getStatus().getStatusName());
+        }
+        return dto;
     }
 }

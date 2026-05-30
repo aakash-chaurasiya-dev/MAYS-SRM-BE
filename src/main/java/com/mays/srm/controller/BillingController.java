@@ -1,21 +1,48 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.entity.Billing;
+import com.mays.srm.dto.requestDTO.BillingRequestDTO;
+import com.mays.srm.dto.responseDTO.BillingResponseDTO;
 import com.mays.srm.service.BillingService;
-import com.mays.srm.service.GenericService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/billings")
-public class BillingController extends AbstractController<Billing, Integer> {
+@RequestMapping("/api/billing")
+public class BillingController {
 
     @Autowired
-    private BillingService service;
+    private BillingService billingService;
 
-    @Override
-    protected GenericService<Billing, Integer> getService() {
-        return service;
+    @PostMapping
+    public ResponseEntity<BillingResponseDTO> createBilling(@RequestBody BillingRequestDTO requestDTO) {
+        BillingResponseDTO responseDTO = billingService.create(requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BillingResponseDTO> getBillingById(@PathVariable Integer id) {
+        BillingResponseDTO responseDTO = billingService.getById(id);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BillingResponseDTO>> getAllBilling() {
+        List<BillingResponseDTO> responseDTOs = billingService.getAll();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BillingResponseDTO> updateBilling(@PathVariable Integer id, @RequestBody BillingRequestDTO requestDTO) {
+        BillingResponseDTO updatedDto = billingService.update(id, requestDTO);
+        return ResponseEntity.ok(updatedDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBilling(@PathVariable Integer id) {
+        billingService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
