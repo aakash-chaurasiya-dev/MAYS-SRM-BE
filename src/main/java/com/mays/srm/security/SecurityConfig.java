@@ -17,10 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// STEP 5: THE RULE BOOK (SecurityConfig)
-// This class sets the "Rules of the Club". What doors are open? Who is allowed in?
-@Configuration // Tells Spring Boot this is a configuration file.
-@EnableWebSecurity // Turns on Spring Security Features
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -29,14 +27,23 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService; // The Database Clerk
 
-    /**
-     * RULE BOOK 1: The SecurityFilterChain intercepts ALL HTTP requests.
-     */
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
+
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // Disable CSRF (Cross-Site Request Forgery) because we are building a REST API (JWTs are safe from this)
                 .csrf(AbstractHttpConfigurer::disable)
+                
+                // Configure exception handling
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
 
                 // Set Authorization Rules (Who is allowed where?)
                 .authorizeHttpRequests(auth -> auth
@@ -54,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/employees/**",
                                 "/api/users/**",
-                                "/api/employee-spec/**"
+                                "/api/employee-specs/**"
                         ).hasRole("MANAGER")
 
                         // 3. TICKETS, DEVICES, BRANCHES, STATUSES: Accessible by Manager, Purchase, Engineer, and Admin
@@ -63,8 +70,8 @@ public class SecurityConfig {
                                 "/api/ticket-logs/**",
                                 "/api/ticket-types/**",
                                 "/api/devices/**",
-                                "/api/device-types/**",
-                                "/api/device-models/**",
+                                "/api/devicetypes/**",
+                                "/api/devicemodels/**",
                                 "/api/branches/**",
                                 "/api/statuses/**"
                         ).hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN")
