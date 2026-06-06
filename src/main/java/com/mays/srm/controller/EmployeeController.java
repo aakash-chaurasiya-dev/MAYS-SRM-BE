@@ -45,4 +45,10 @@ public class EmployeeController {
         employeeService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/department/{deptId}")
+    public ResponseEntity<List<EmployeeResponseDTO>> getEmployeesByDepartmentId(@PathVariable Integer deptId) {
+        List<EmployeeResponseDTO> responseDTOs = employeeService.getEmployeesByDepartmentId(deptId);
+        return ResponseEntity.ok(responseDTOs);
+    }
 }

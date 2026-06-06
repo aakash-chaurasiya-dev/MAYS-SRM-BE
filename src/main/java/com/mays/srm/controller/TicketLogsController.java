@@ -15,7 +15,7 @@ public class TicketLogsController {
     @Autowired
     private TicketLogsService ticketLogsService;
 
-    @GetMapping("/ticket/{ticketId}")
+    @GetMapping("/{ticketId}")
     public ResponseEntity<List<TicketLogsResponseDTO>> getLogsForTicket(@PathVariable Integer ticketId) {
         List<TicketLogsResponseDTO> responseDTOs = ticketLogsService.getLogsForTicket(ticketId);
         return ResponseEntity.ok(responseDTOs);

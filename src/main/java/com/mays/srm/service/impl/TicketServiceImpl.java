@@ -315,8 +315,17 @@ public class TicketServiceImpl implements TicketService {
             dto.setDeviceSerialNo(ticket.getDevice().getSerialNo());
             if (ticket.getDevice().getModel() != null) {
                 dto.setDeviceModelName(ticket.getDevice().getModel().getModelName());
+                if (ticket.getDevice().getModel().getBrand() != null) {
+                    dto.setDeviceBrandName(ticket.getDevice().getModel().getBrand().getBrandName());
+                    dto.setDeviceTypeName(ticket.getDevice().getModel().getBrand().getDeviceType().getDeviceTypeName());
+                } else {
+                    dto.setDeviceBrandName("N/A");
+                    dto.setDeviceTypeName("N/A");
+                }
             }
         }
+
+
         if (ticket.getTicketBranch() != null) {
             dto.setBranchName(ticket.getTicketBranch().getBranchName());
         }

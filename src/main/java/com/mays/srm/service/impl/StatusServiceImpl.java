@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class StatusServiceImpl implements StatusService {
@@ -89,5 +90,13 @@ public class StatusServiceImpl implements StatusService {
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Status with ID: " + id, ex);
         }
+    }
+
+    @Override
+    public List<StatusResponseDTO> getStatusesByType(String statusType) {
+        List<Status> statuses = repository.findByStatusTypeIgnoreCase(statusType);
+        return statuses.stream()
+                .map(status -> modelMapper.map(status, StatusResponseDTO.class))
+                .collect(Collectors.toList());
     }
 }

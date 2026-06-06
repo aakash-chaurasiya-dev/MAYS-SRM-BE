@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -75,11 +76,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<EmployeeResponseDTO> getAll() {
         List<Employee> employeeList = repository.findAll();
-        List<EmployeeResponseDTO> dtoList = new ArrayList<>();
-        for (Employee employee : employeeList) {
-            dtoList.add(mapToResponseDTO(employee));
-        }
-        return dtoList;
+        return employeeList.stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -132,6 +131,19 @@ public class EmployeeServiceImpl implements EmployeeService {
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Employee with ID: " + id, ex);
         }
+    }
+
+    @Override
+    public List<EmployeeResponseDTO> getEmployeesByDepartmentId(Integer departmentId) {
+        // First, check if the department exists to give a clear error message
+        if (!departmentDao.existsById(departmentId)) {
+            throw new ResourceNotFoundException("Department not found with ID: " + departmentId);
+        }
+        
+        List<Employee> employees = repository.findByDepartment(departmentId);
+        return employees.stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
     }
 
     private EmployeeResponseDTO mapToResponseDTO(Employee employee) {

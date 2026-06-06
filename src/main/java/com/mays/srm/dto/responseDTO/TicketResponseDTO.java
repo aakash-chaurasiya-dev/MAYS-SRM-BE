@@ -14,6 +14,8 @@ public class TicketResponseDTO {
     private String emailId;
     private String deviceSerialNo;
     private String deviceModelName;
+    private String deviceTypeName;
+    private String deviceBrandName;
     private String ticketDescription;
     private String branchName;
     private String employeeName;

@@ -45,4 +45,10 @@ public class StatusController {
         statusService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/type/{statusType}")
+    public ResponseEntity<List<StatusResponseDTO>> getStatusesByType(@PathVariable String statusType) {
+        List<StatusResponseDTO> responseDTOs = statusService.getStatusesByType(statusType);
+        return ResponseEntity.ok(responseDTOs);
+    }
 }
