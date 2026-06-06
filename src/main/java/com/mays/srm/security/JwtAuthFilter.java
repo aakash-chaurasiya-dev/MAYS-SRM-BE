@@ -1,5 +1,6 @@
 package com.mays.srm.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,11 +25,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService; // The Wristband Maker
     private final UserDetailsService userDetailsService; // The Database Clerk
+    private final AuthEntryPointJwt authEntryPointJwt; // Injected the entry point
+
 
     @Autowired
-    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService, AuthEntryPointJwt authEntryPointJwt) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.authEntryPointJwt = authEntryPointJwt;
     }
 
     // This method runs EVERY SINGLE TIME an HTTP request hits our API
@@ -48,6 +52,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
+        try{
 
         // 3. We found a wristband! Grab just the token part (skip the "Bearer " string)
         final String jwt = authHeader.substring(7);
@@ -78,8 +84,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
-        // 10. Pass the request along to the Controller now that they are logged in!
-        filterChain.doFilter(request, response);
+            // 10. Pass the request along to the Controller now that they are logged in!
+            filterChain.doFilter(request, response);
+        } catch (JwtException | IllegalArgumentException e) {
+            // If any JWT error occurs (expired, malformed, etc.),
+            // delegate to the custom authentication entry point.
+            authEntryPointJwt.commence(request, response, new org.springframework.security.core.AuthenticationException(e.getMessage(), e) {});
+        }
     }
 }
