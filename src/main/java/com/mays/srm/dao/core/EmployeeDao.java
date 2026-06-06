@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface EmployeeDao extends JpaRepository<Employee, Integer>, EmployeeDaoCustom {
     Optional<Employee> findByMobileNo(String mobileNo);
     Optional<Employee> findByEmail(String email);
+    List<Employee> findByDepartmentDepartmentId(Integer departmentId);
 }
