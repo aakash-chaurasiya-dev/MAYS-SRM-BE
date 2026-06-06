@@ -322,6 +322,9 @@ public class TicketServiceImpl implements TicketService {
         }
         if (ticket.getEmployee() != null) {
             dto.setEmployeeName(ticket.getEmployee().getEmployeeName());
+            if (ticket.getEmployee().getDepartment() != null) {
+                dto.setDepartmentName(ticket.getEmployee().getDepartment().getDepartmentName());
+            }
         }
         
         return dto;

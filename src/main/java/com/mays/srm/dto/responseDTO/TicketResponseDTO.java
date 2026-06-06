@@ -17,6 +17,7 @@ public class TicketResponseDTO {
     private String ticketDescription;
     private String branchName;
     private String employeeName;
+    private String departmentName; // Added field
     private String warrantyType;
     private String priority;
     private LocalDateTime createdDate;
