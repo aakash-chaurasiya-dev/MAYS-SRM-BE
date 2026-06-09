@@ -2,6 +2,7 @@ package com.mays.srm.dto.responseDTO;
 
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 public class InventoryResponseDTO {
@@ -15,4 +16,5 @@ public class InventoryResponseDTO {
     private BigDecimal buyingPrice;
     private Integer stock;
     private String branchName;
+    private LocalDateTime lastUpdationDate; // Added
 }
