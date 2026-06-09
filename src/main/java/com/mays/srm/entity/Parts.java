@@ -2,6 +2,8 @@ package com.mays.srm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,8 +29,8 @@ public class Parts {
     private Integer quantity;
 
     @ManyToOne
-    @JoinColumn(name = "device_type")
-    private DeviceType deviceType;
+    @JoinColumn(name = "product_id")
+    private Inventory product;
 
     @ManyToOne
     @JoinColumn(name = "status_id")
@@ -36,4 +38,17 @@ public class Parts {
 
     @Column(name = "returned")
     private Boolean returned;
+
+    @CreationTimestamp
+    @Column(name = "order_date", updatable = false)
+    private LocalDateTime orderDate;
+
+    @Column(name = "receive_date")
+    private LocalDateTime receiveDate;
+
+    @Column(name = "remarks", columnDefinition = "TEXT")
+    private String remarks;
+
+    @Column(name = "in_stock")
+    private Boolean inStock = false;
 }

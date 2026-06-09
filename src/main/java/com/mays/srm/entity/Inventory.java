@@ -2,7 +2,9 @@ package com.mays.srm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -46,4 +48,8 @@ public class Inventory {
     @ManyToOne
     @JoinColumn(name = "branch_id")
     private Branch branch;
+
+    @UpdateTimestamp
+    @Column(name = "last_updation_date")
+    private LocalDateTime lastUpdationDate;
 }
