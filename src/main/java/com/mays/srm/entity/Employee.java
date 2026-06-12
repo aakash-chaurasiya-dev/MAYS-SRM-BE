@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Set; // Use Set for collections in JPA
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,12 +26,6 @@ public class Employee {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    /*
-    // This field lets the user ONLY pass the department ID in JSON
-    @Transient // Not saved in DB directly, just used for JSON mapping
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // Only allowed on POST/PUT requests
-    private Integer departmentId;
-    */
     @Column(name = "vendor")
     private String vendor;
 
@@ -55,7 +51,11 @@ public class Employee {
     private Boolean isActive = true;
     
     @Column(name = "password")
-    // Hide password from GET requests so it's not exposed to the public
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    // Establish the one-to-many relationship with EmployeeSpec
+    // When an Employee is deleted, all associated EmployeeSpec records will also be deleted.
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmployeeSpec> employeeSpecs;
 }

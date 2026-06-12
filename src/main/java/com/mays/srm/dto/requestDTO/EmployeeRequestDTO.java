@@ -12,7 +12,6 @@ public class EmployeeRequestDTO {
     private String city;
     private String email;
     private String mobileNo;
-    private String role;
     private Boolean isActive;
     private String password;
 }

@@ -40,9 +40,17 @@ public class EmployeeController {
         return ResponseEntity.ok(updatedDto);
     }
 
+    // Existing DELETE for single record by path variable
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Integer id) {
         employeeService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // New DELETE for multiple records by request body
+    @DeleteMapping
+    public ResponseEntity<Void> deleteEmployees(@RequestBody List<Integer> ids) {
+        employeeService.deleteEmployees(ids);
         return ResponseEntity.noContent().build();
     }
 
