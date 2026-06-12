@@ -2,10 +2,12 @@ package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.DepartmentDao;
 import com.mays.srm.dao.core.EmployeeDao;
+import com.mays.srm.dao.core.EmployeeSpecDao; // Keep this import for now, but it will be removed
 import com.mays.srm.dto.requestDTO.EmployeeRequestDTO;
 import com.mays.srm.dto.responseDTO.EmployeeResponseDTO;
 import com.mays.srm.entity.Department;
 import com.mays.srm.entity.Employee;
+import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.service.EmployeeService;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +31,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
+    // EmployeeSpecDao is no longer needed for explicit deletion due to cascade
+    // private final EmployeeSpecDao employeeSpecDao;
+
     @Autowired
     public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.repository = repository;
@@ -41,14 +47,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             Employee employee = modelMapper.map(requestDTO, Employee.class);
 
-            if (requestDTO.getDepartmentId() != null) {
-                Optional<Department> departmentOpt = departmentDao.findById(requestDTO.getDepartmentId());
-                if (departmentOpt.isPresent()) {
-                    employee.setDepartment(departmentOpt.get());
-                } else {
-                    throw new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId());
-                }
-            }
+            validateAndSetRelations(employee, requestDTO);
+            assignRoleBasedOnDepartment(employee);
 
             if (employee.getPassword() != null) {
                 employee.setPassword(passwordEncoder.encode(employee.getPassword()));
@@ -100,16 +100,8 @@ public class EmployeeServiceImpl implements EmployeeService {
             existingEmployee.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         }
 
-        if (requestDTO.getDepartmentId() != null) {
-            Optional<Department> departmentOpt = departmentDao.findById(requestDTO.getDepartmentId());
-            if (departmentOpt.isPresent()) {
-                existingEmployee.setDepartment(departmentOpt.get());
-            } else {
-                throw new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId());
-            }
-        } else {
-            existingEmployee.setDepartment(null);
-        }
+        validateAndSetRelations(existingEmployee, requestDTO);
+        assignRoleBasedOnDepartment(existingEmployee);
 
         try {
             Employee updatedEmployee = repository.save(existingEmployee);
@@ -120,30 +112,83 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional // Ensure this is transactional
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Employee not found with ID: " + id);
         }
         try {
+            // Hibernate will now handle cascading deletion of EmployeeSpec due to CascadeType.ALL
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete Employee because they are currently assigned to active records.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Employee because they are currently assigned to active records (e.g., Tickets).", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Employee with ID: " + id, ex);
         }
     }
 
     @Override
+    @Transactional // Ensure this is transactional
+    public void deleteEmployees(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("List of IDs to delete cannot be empty");
+        }
+        try {
+            // First check if all exist to provide a better error message if needed
+            List<Employee> employeesToDelete = repository.findAllById(ids);
+            if (employeesToDelete.size() != ids.size()) {
+                throw new ResourceNotFoundException("One or more Employees not found for deletion.");
+            }
+            // Hibernate will now handle cascading deletion of EmployeeSpec due to CascadeType.ALL
+            repository.deleteAllByIdInBatch(ids); // Efficiently deletes multiple records
+        } catch (DataIntegrityViolationException ex) {
+             throw new DataIntegrityViolationException("Cannot delete one or more Employees because they are currently assigned to active records (e.g., Tickets).", ex);
+        } catch (Exception ex) {
+             throw new InternalServerException("Error occurred while deleting multiple Employees", ex);
+        }
+    }
+
+    @Override
     public List<EmployeeResponseDTO> getEmployeesByDepartmentId(Integer departmentId) {
-        // First, check if the department exists to give a clear error message
         if (!departmentDao.existsById(departmentId)) {
             throw new ResourceNotFoundException("Department not found with ID: " + departmentId);
         }
         
-        List<Employee> employees = repository.findByDepartment(departmentId);
+        List<Employee> employees = repository.findByDepartmentDepartmentId(departmentId);
         return employees.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    private void validateAndSetRelations(Employee employee, EmployeeRequestDTO requestDTO) {
+        if (requestDTO.getDepartmentId() != null) {
+            Optional<Department> departmentOpt = departmentDao.findById(requestDTO.getDepartmentId());
+            if (departmentOpt.isPresent()) {
+                employee.setDepartment(departmentOpt.get());
+            } else {
+                throw new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId());
+            }
+        } else {
+            employee.setDepartment(null);
+        }
+    }
+
+    private void assignRoleBasedOnDepartment(Employee employee) {
+        if (employee.getDepartment() != null) {
+            String departmentName = employee.getDepartment().getDepartmentName();
+            
+            if ("Engineer".equalsIgnoreCase(departmentName)) {
+                employee.setRole("ROLE_ENGINEER");
+            } else if ("Purchase Team".equalsIgnoreCase(departmentName)) {
+                employee.setRole("ROLE_PURCHASE");
+            } else if ("Management".equalsIgnoreCase(departmentName)) {
+                employee.setRole("ROLE_MANAGER");
+            } else {
+                employee.setRole("ROLE_ADMIN");
+            }
+        } else {
+            throw new ResourceNotFoundException("Department not found with ID: " + employee.getDepartment().getDepartmentId());
+        }
     }
 
     private EmployeeResponseDTO mapToResponseDTO(Employee employee) {
