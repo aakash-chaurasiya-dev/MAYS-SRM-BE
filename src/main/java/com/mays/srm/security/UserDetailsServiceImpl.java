@@ -32,7 +32,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (employeeOpt.isPresent()) {
             Employee emp = employeeOpt.get(); // We found an employee!
             // We convert the Employee into our CustomUserDetails (The Passport)
-            return new CustomUserDetails(emp.getMobileNo(), emp.getPassword(), emp.getRole(), emp.getIsActive());
+            return new CustomUserDetails(emp.getMobileNo(), emp.getPassword(), emp.getRole(), emp.getIsActive(), emp.getEmployeeName(), emp.getEmployeeId());
         }
 
         // 2. If it wasn't an employee, ask the User table: "Do you have this mobile number?"
@@ -40,7 +40,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (userOpt.isPresent()) {
             UserMaster user = userOpt.get(); // We found a normal user!
             // We convert the User into our CustomUserDetails (The Passport)
-            return new CustomUserDetails(user.getMobileNo(), user.getPassword(), user.getRole(), user.getIsActive());
+            String fullName = user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : "");
+            return new CustomUserDetails(user.getMobileNo(), user.getPassword(), user.getRole(), user.getIsActive(), fullName, user.getUserId());
         }
 
         // 3. We didn't find anyone in either table! Deny login.
