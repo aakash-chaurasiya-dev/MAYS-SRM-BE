@@ -44,6 +44,14 @@ public class UserMaster {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    public Branch getBranch() {
+        return this.branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
+
  /*   @PrePersist
     @PreUpdate
     protected void syncMobileNo() {
