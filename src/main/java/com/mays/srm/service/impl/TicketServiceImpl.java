@@ -33,9 +33,11 @@ public class TicketServiceImpl implements TicketService {
     private final TicketLogsDao ticketLogsDao;
     private final DeviceModelDao deviceModelDao;
     private final ModelMapper modelMapper;
+    private final BillingDao billingDao;
+    private final ChargeTypeDao chargeTypeDao;
 
     @Autowired
-    public TicketServiceImpl(TicketDao repository, UserMasterDao userMasterDao, TicketTypeDao ticketTypeDao, StatusDao statusDao, DeviceDao deviceDao, BranchDao branchDao, EmployeeDao employeeDao, TicketLogsDao ticketLogsDao, DeviceModelDao deviceModelDao, ModelMapper modelMapper) {
+    public TicketServiceImpl(TicketDao repository, UserMasterDao userMasterDao, TicketTypeDao ticketTypeDao, StatusDao statusDao, DeviceDao deviceDao, BranchDao branchDao, EmployeeDao employeeDao, TicketLogsDao ticketLogsDao, DeviceModelDao deviceModelDao, ModelMapper modelMapper, BillingDao billingDao, ChargeTypeDao chargeTypeDao) {
         this.repository = repository;
         this.userMasterDao = userMasterDao;
         this.ticketTypeDao = ticketTypeDao;
@@ -46,6 +48,8 @@ public class TicketServiceImpl implements TicketService {
         this.ticketLogsDao = ticketLogsDao;
         this.deviceModelDao = deviceModelDao;
         this.modelMapper = modelMapper;
+        this.billingDao = billingDao;
+        this.chargeTypeDao = chargeTypeDao;
     }
 
     @Override
@@ -64,6 +68,7 @@ public class TicketServiceImpl implements TicketService {
             modelMapper.map(requestDTO, ticket);
             
             Ticket savedTicket = repository.save(ticket);
+            ensureFinalChargeExists(savedTicket);
             return mapToResponseDTO(savedTicket);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
@@ -160,6 +165,7 @@ public class TicketServiceImpl implements TicketService {
         handleDeviceCreation(ticket, requestDTO);
 
         Ticket updatedTicket = repository.save(ticket);
+        ensureFinalChargeExists(updatedTicket);
         return mapToResponseDTO(updatedTicket);
     }
 
@@ -220,6 +226,38 @@ public class TicketServiceImpl implements TicketService {
     }
 
     // --- Helper Methods ---
+
+    private void ensureFinalChargeExists(Ticket ticket) {
+        Optional<Billing> existingCharge = billingDao.getChargeByTicketIdAndChargeName(ticket.getTicketId(), "Final Charge");
+        if (existingCharge.isEmpty()) {
+            Billing finalCharge = new Billing();
+            finalCharge.setTicket(ticket);
+            
+            ChargeType chargeType = chargeTypeDao.getChargeTypeByName("Final Charge")
+                .orElseGet(() -> {
+                    ChargeType newChargeType = new ChargeType();
+                    newChargeType.setChargeName("Final Charge");
+                    newChargeType.setChargeDescription("Total Final Charge for the Ticket");
+                    return chargeTypeDao.save(newChargeType);
+                });
+            finalCharge.setChargeType(chargeType);
+            
+            Status pendingStatus = statusDao.getStatusByNameAndType("Pending", "Billing")
+                .orElseGet(() -> {
+                    Status newStatus = new Status();
+                    newStatus.setStatusName("Pending");
+                    newStatus.setStatusType("Billing");
+                    newStatus.setStatusDescription("Pending Billing Status");
+                    return statusDao.save(newStatus);
+                });
+            finalCharge.setStatus(pendingStatus);
+            
+            finalCharge.setAmount(java.math.BigDecimal.ZERO);
+            finalCharge.setBillingDate(LocalDateTime.now());
+            
+            billingDao.save(finalCharge);
+        }
+    }
 
     private void validateAndSetRelations(Ticket ticket, TicketRequestDTO requestDTO) {
         if (requestDTO.getUserRefNo() != null) {

@@ -34,6 +34,24 @@ public class BillingController {
         return ResponseEntity.ok(responseDTOs);
     }
 
+    @GetMapping("/final-charges")
+    public ResponseEntity<List<BillingResponseDTO>> getFinalCharges() {
+        List<BillingResponseDTO> responseDTOs = billingService.getFinalCharges();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @GetMapping("/ticket/{ticketId}")
+    public ResponseEntity<List<BillingResponseDTO>> getChargesByTicketId(@PathVariable Integer ticketId) {
+        List<BillingResponseDTO> responseDTOs = billingService.getChargesByTicketId(ticketId);
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @PutMapping("/ticket/{ticketId}/charges")
+    public ResponseEntity<Void> bulkUpdateCharges(@PathVariable Integer ticketId, @RequestBody List<BillingRequestDTO> requestDTOs) {
+        billingService.bulkUpdateCharges(ticketId, requestDTOs);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<BillingResponseDTO> updateBilling(@PathVariable Integer id, @RequestBody BillingRequestDTO requestDTO) {
         BillingResponseDTO updatedDto = billingService.update(id, requestDTO);

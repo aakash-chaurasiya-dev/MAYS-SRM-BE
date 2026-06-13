@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 
 @Data
 public class BillingRequestDTO {
+    private Integer billingId;
     private Integer ticketId;
     private Integer chargeTypeId;
     private Integer productId;
