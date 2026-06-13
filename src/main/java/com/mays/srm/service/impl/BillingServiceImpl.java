@@ -121,6 +121,87 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    @Override
+    public List<BillingResponseDTO> getFinalCharges() {
+        List<Billing> charges = repository.getChargesByChargeName("Final Charge");
+        List<BillingResponseDTO> result = new ArrayList<>();
+        for (Billing billing : charges) {
+            result.add(mapToResponseDTO(billing));
+        }
+        return result;
+    }
+
+    @Override
+    public List<BillingResponseDTO> getChargesByTicketId(Integer ticketId) {
+        List<Billing> charges = repository.getChargesByTicketId(ticketId);
+        List<BillingResponseDTO> result = new ArrayList<>();
+        for (Billing billing : charges) {
+            if (billing.getChargeType() != null & !"Final Charge".equalsIgnoreCase(billing.getChargeType().getChargeName())) {
+                result.add(mapToResponseDTO(billing));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void bulkUpdateCharges(Integer ticketId, List<BillingRequestDTO> charges) {
+        List<Billing> existing = repository.getChargesByTicketId(ticketId);
+        Billing finalCharge = null;
+        List<Billing> nonFinalExisting = new ArrayList<>();
+        
+        for (Billing b : existing) {
+            if (b.getChargeType() != null && "Final Charge".equalsIgnoreCase(b.getChargeType().getChargeName())) {
+                finalCharge = b;
+            } else {
+                nonFinalExisting.add(b);
+            }
+        }
+        
+        for (Billing existingCharge : nonFinalExisting) {
+            boolean found = false;
+            for (BillingRequestDTO c : charges) {
+                if (c.getBillingId() != null && c.getBillingId().equals(existingCharge.getBillingId())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                repository.delete(existingCharge);
+            }
+        }
+        
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        
+        for (BillingRequestDTO c : charges) {
+            Billing billing;
+            if (c.getBillingId() != null) {
+                billing = repository.findById(c.getBillingId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Billing record not found with ID: " + c.getBillingId()));
+                c.setTicketId(ticketId);
+                validateAndSetRelations(billing, c);
+                calculateAmount(billing, c);
+                billing = repository.save(billing);
+            } else {
+                billing = new Billing();
+                billing.setBillingDate(LocalDateTime.now());
+                c.setTicketId(ticketId);
+                validateAndSetRelations(billing, c);
+                calculateAmount(billing, c);
+                billing = repository.save(billing);
+            }
+            if (billing.getAmount() != null) {
+                totalAmount = totalAmount.add(billing.getAmount());
+            }
+        }
+        
+        if (finalCharge != null) {
+            finalCharge.setAmount(totalAmount);
+            finalCharge.setBillingDate(LocalDateTime.now());
+            repository.save(finalCharge);
+        }
+    }
+
     private void validateAndSetRelations(Billing billing, BillingRequestDTO requestDTO) {
         // Ticket
         if (requestDTO.getTicketId() != null) {
@@ -174,7 +255,7 @@ public class BillingServiceImpl implements BillingService {
                 Optional<Inventory> productOpt = inventoryDao.findById(requestDTO.getProductId());
                 if (productOpt.isPresent()) {
                     billing.setProduct(productOpt.get());
-                    billing.setAmount(productOpt.get().getSellingPrice());
+                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount() : productOpt.get().getSellingPrice());
                     billing.setServiceCharge(null);
                 } else {
                     throw new ResourceNotFoundException("Product not found with ID: " + requestDTO.getProductId());
@@ -186,7 +267,7 @@ public class BillingServiceImpl implements BillingService {
                 Optional<ServiceCharges> serviceChargeOpt = serviceChargesDao.findById(requestDTO.getServiceChargeId());
                 if (serviceChargeOpt.isPresent()) {
                     billing.setServiceCharge(serviceChargeOpt.get());
-                    billing.setAmount(serviceChargeOpt.get().getAmount());
+                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount() : serviceChargeOpt.get().getAmount());
                     billing.setProduct(null);
                 } else {
                     throw new ResourceNotFoundException("Service Charge not found with ID: " + requestDTO.getServiceChargeId());
@@ -207,20 +288,28 @@ public class BillingServiceImpl implements BillingService {
         
         if (billing.getTicket() != null) {
             dto.setTicketId(billing.getTicket().getTicketId());
+            if (billing.getTicket().getUserMaster() != null) {
+                dto.setCustomerName(billing.getTicket().getUserMaster().getFirstName() + " " + billing.getTicket().getUserMaster().getLastName());
+            }
         }
         if (billing.getChargeType() != null) {
+            dto.setChargeTypeId(billing.getChargeType().getChargeTypeId());
             dto.setChargeTypeName(billing.getChargeType().getChargeName());
         }
         if (billing.getProduct() != null) {
+            dto.setProductId(billing.getProduct().getProductId());
             dto.setProductName(billing.getProduct().getProductName());
         }
         if (billing.getServiceCharge() != null) {
+            dto.setServiceChargeId(billing.getServiceCharge().getChargeId());
             dto.setServiceChargeDescription(billing.getServiceCharge().getDescr());
         }
         if (billing.getPaymentModeDetails() != null) {
+            dto.setPaymentModeId(billing.getPaymentModeDetails().getPayModeId());
             dto.setPaymentModeName(billing.getPaymentModeDetails().getPaymentMode());
         }
         if (billing.getStatus() != null) {
+            dto.setStatusId(billing.getStatus().getStatusId());
             dto.setStatusName(billing.getStatus().getStatusName());
         }
         

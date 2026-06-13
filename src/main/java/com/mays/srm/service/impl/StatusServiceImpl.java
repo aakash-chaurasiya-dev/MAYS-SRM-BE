@@ -94,9 +94,11 @@ public class StatusServiceImpl implements StatusService {
 
     @Override
     public List<StatusResponseDTO> getStatusesByType(String statusType) {
-        List<Status> statuses = repository.findByStatusTypeIgnoreCase(statusType);
-        return statuses.stream()
-                .map(status -> modelMapper.map(status, StatusResponseDTO.class))
-                .collect(Collectors.toList());
+        List<Status> statuses = repository.getStatusesByType(statusType);
+        List<StatusResponseDTO> dtoList = new java.util.ArrayList<>();
+        for (Status status : statuses) {
+            dtoList.add(modelMapper.map(status, StatusResponseDTO.class));
+        }
+        return dtoList;
     }
 }
