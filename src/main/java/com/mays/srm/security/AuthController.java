@@ -6,12 +6,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mays.srm.dao.core.EmployeeDao;
+import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.entity.Employee;
+import com.mays.srm.entity.UserMaster;
+
+import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 
 // STEP 6: THE TICKET BOOTH (AuthController)
 // The user needs an actual URL (`/api/auth/login`) to send their mobile number and password to.
@@ -28,6 +36,12 @@ public class AuthController {
 
     @Autowired
     private UserDetailsService userDetailsService; // The Database Clerk
+
+    @Autowired
+    private EmployeeDao employeeDao;
+
+    @Autowired
+    private UserMasterDao userMasterDao;
 
     /**
      * POST /api/auth/login
@@ -55,5 +69,31 @@ public class AuthController {
 
         // 5. Return the Token to the User's browser/app as a JSON response!
         return ResponseEntity.ok(Map.of("token", jwt));
+    }
+
+    /**
+     * GET /api/auth/me
+     * Returns the full details of the currently authenticated user
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        String mobileNo = principal.getName();
+
+        // 1. Check Employee table
+        Optional<Employee> employeeOpt = employeeDao.findByMobileNo(mobileNo);
+        if (employeeOpt.isPresent()) {
+            return ResponseEntity.ok(employeeOpt.get());
+        }
+
+        // 2. Check User table
+        Optional<UserMaster> userOpt = userMasterDao.findByMobileNo(mobileNo);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok(userOpt.get());
+        }
+
+        return ResponseEntity.status(404).body("User not found");
     }
 }

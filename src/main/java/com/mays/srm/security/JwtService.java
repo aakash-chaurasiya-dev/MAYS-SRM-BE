@@ -25,9 +25,12 @@ public class JwtService {
      * ACTION 1: Generate the Token when someone successfully logs in.
      */
     public String generateToken(UserDetails userDetails) {
+        CustomUserDetails customUser = (CustomUserDetails) userDetails;
         return Jwts.builder()
                 .setSubject(userDetails.getUsername()) // Who is this for? (Mobile No)
                 .claim("roles", userDetails.getAuthorities()) // Add extra info like their role
+                .claim("name", customUser.getName()) // Add the user's name
+                .claim("userId", customUser.getUserId()) // Add the user's ID
                 .setIssuedAt(new Date()) // When was it made? Now.
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION)) // When does it die? 1 day.
                 .signWith(SECRET_KEY) // Sign it with our secret ink so nobody can forge it.

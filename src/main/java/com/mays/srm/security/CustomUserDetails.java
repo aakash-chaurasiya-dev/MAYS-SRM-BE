@@ -16,13 +16,25 @@ public class CustomUserDetails implements UserDetails {
     private final String password;
     private final String role;
     private final boolean isActive;
+    private final String name;
+    private final Integer userId;
 
     // Constructor to build our "User/employee"
-    public CustomUserDetails(String mobileNo, String password, String role, boolean isActive) {
+    public CustomUserDetails(String mobileNo, String password, String role, boolean isActive, String name, Integer userId) {
         this.mobileNo = mobileNo;
         this.password = password;
         this.role = role;
         this.isActive = isActive;
+        this.name = name;
+        this.userId = userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Integer getUserId() {
+        return userId;
     }
 
     // Spring asks: What are this user's roles?
