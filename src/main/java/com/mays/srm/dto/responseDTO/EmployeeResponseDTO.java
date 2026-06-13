@@ -15,4 +15,12 @@ public class EmployeeResponseDTO {
     private String mobileNo;
     private String role;
     private Boolean isActive;
+
+    public String getDepartmentName() {
+        return this.departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
 }

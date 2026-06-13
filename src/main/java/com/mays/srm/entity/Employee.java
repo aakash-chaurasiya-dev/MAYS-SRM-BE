@@ -58,4 +58,12 @@ public class Employee {
     // When an Employee is deleted, all associated EmployeeSpec records will also be deleted.
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmployeeSpec> employeeSpecs;
+
+    public Department getDepartment() {
+        return this.department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
 }

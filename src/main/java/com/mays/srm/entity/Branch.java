@@ -21,4 +21,12 @@ public class Branch {
 
     @Column(name = "branch_description")
     private String branchDescription;
+
+    public String getBranchName() {
+        return this.branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
+    }
 }

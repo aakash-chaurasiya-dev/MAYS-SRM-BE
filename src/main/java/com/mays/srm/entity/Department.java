@@ -21,4 +21,12 @@ public class Department {
 
     @Column(name = "department_description")
     private String departmentDescription;
+
+    public String getDepartmentName() {
+        return this.departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
 }

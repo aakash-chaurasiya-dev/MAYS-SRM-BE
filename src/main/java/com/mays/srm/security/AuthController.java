@@ -16,10 +16,16 @@ import com.mays.srm.dao.core.EmployeeDao;
 import com.mays.srm.dao.core.UserMasterDao;
 import com.mays.srm.entity.Employee;
 import com.mays.srm.entity.UserMaster;
+import com.mays.srm.entity.Branch;
+import com.mays.srm.entity.Department;
 
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
+
+import com.mays.srm.dto.responseDTO.EmployeeResponseDTO;
+import com.mays.srm.dto.responseDTO.UserMasterResponseDTO;
+import org.modelmapper.ModelMapper;
 
 // STEP 6: THE TICKET BOOTH (AuthController)
 // The user needs an actual URL (`/api/auth/login`) to send their mobile number and password to.
@@ -42,6 +48,9 @@ public class AuthController {
 
     @Autowired
     private UserMasterDao userMasterDao;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     /**
      * POST /api/auth/login
@@ -85,13 +94,23 @@ public class AuthController {
         // 1. Check Employee table
         Optional<Employee> employeeOpt = employeeDao.findByMobileNo(mobileNo);
         if (employeeOpt.isPresent()) {
-            return ResponseEntity.ok(employeeOpt.get());
+            Employee employee = employeeOpt.get();
+            EmployeeResponseDTO dto = modelMapper.map(employee, EmployeeResponseDTO.class);
+            if (employee.getDepartment() != null) {
+                dto.setDepartmentName(employee.getDepartment().getDepartmentName());
+            }
+            return ResponseEntity.ok(dto);
         }
 
         // 2. Check User table
         Optional<UserMaster> userOpt = userMasterDao.findByMobileNo(mobileNo);
         if (userOpt.isPresent()) {
-            return ResponseEntity.ok(userOpt.get());
+            UserMaster user = userOpt.get();
+            UserMasterResponseDTO dto = modelMapper.map(user, UserMasterResponseDTO.class);
+            if (user.getBranch() != null) {
+                dto.setBranchName(user.getBranch().getBranchName());
+            }
+            return ResponseEntity.ok(dto);
         }
 
         return ResponseEntity.status(404).body("User not found");
