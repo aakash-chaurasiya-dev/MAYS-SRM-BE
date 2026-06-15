@@ -18,4 +18,6 @@ public class TicketRequestDTO {
     
     // Optional field for creating a new device along with the ticket
     private Integer deviceModelId;
+    private String customModelName;
+    private Integer brandId;
 }
