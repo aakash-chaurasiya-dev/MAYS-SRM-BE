@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +27,12 @@ import java.util.Optional;
 import com.mays.srm.dto.responseDTO.EmployeeResponseDTO;
 import com.mays.srm.dto.responseDTO.UserMasterResponseDTO;
 import org.modelmapper.ModelMapper;
+import com.mays.srm.service.UserMasterService;
+import com.mays.srm.service.BranchService;
+import com.mays.srm.service.EmployeeService;
+import com.mays.srm.dto.requestDTO.UserMasterRequestDTO;
+import com.mays.srm.dto.requestDTO.EmployeeRequestDTO;
+import com.mays.srm.dto.responseDTO.BranchResponseDTO;
 
 // STEP 6: THE TICKET BOOTH (AuthController)
 // The user needs an actual URL (`/api/auth/login`) to send their mobile number and password to.
@@ -51,6 +58,15 @@ public class AuthController {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private UserMasterService userMasterService;
+
+    @Autowired
+    private EmployeeService employeeService;
+
+    @Autowired
+    private BranchService branchService;
 
     /**
      * POST /api/auth/login
@@ -111,6 +127,88 @@ public class AuthController {
                 dto.setBranchName(user.getBranch().getBranchName());
             }
             return ResponseEntity.ok(dto);
+        }
+
+        return ResponseEntity.status(404).body("User not found");
+    }
+
+    /**
+     * POST /api/auth/register
+     * Public endpoint to register a new user
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserMasterRequestDTO requestDTO) {
+        try {
+            UserMasterResponseDTO responseDTO = userMasterService.create(requestDTO);
+            return ResponseEntity.ok(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/auth/branches
+     * Public endpoint to fetch all branches for user registration select dropdown
+     */
+    @GetMapping("/branches")
+    public ResponseEntity<?> getAllBranches() {
+        try {
+            return ResponseEntity.ok(branchService.getAll());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/auth/me
+     * Updates the currently authenticated user's profile details
+     */
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUser(Principal principal, @RequestBody Map<String, Object> request) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        String mobileNo = principal.getName();
+
+        // 1. Check Employee table
+        Optional<Employee> employeeOpt = employeeDao.findByMobileNo(mobileNo);
+        if (employeeOpt.isPresent()) {
+            Employee employee = employeeOpt.get();
+            EmployeeRequestDTO requestDTO = new EmployeeRequestDTO();
+            requestDTO.setEmployeeName((String) request.get("employeeName"));
+            requestDTO.setMobileNo((String) request.get("mobileNo"));
+            requestDTO.setEmail((String) request.get("email"));
+            requestDTO.setAddress((String) request.get("address"));
+            requestDTO.setVendor((String) request.get("vendor"));
+            requestDTO.setPincode((String) request.get("pincode"));
+            requestDTO.setCity((String) request.get("city"));
+            
+            if (employee.getDepartment() != null) {
+                requestDTO.setDepartmentId(employee.getDepartment().getDepartmentId());
+            }
+            requestDTO.setIsActive(employee.getIsActive());
+
+            EmployeeResponseDTO updated = employeeService.update(employee.getEmployeeId(), requestDTO);
+            return ResponseEntity.ok(updated);
+        }
+
+        // 2. Check User table
+        Optional<UserMaster> userOpt = userMasterDao.findByMobileNo(mobileNo);
+        if (userOpt.isPresent()) {
+            UserMaster user = userOpt.get();
+            UserMasterRequestDTO requestDTO = new UserMasterRequestDTO();
+            requestDTO.setFirstName((String) request.get("firstName"));
+            requestDTO.setLastName((String) request.get("lastName"));
+            requestDTO.setMobileNo((String) request.get("mobileNo"));
+            requestDTO.setEmailId((String) request.get("emailId"));
+            requestDTO.setAddress((String) request.get("address"));
+            
+            if (user.getBranch() != null) {
+                requestDTO.setBranchId(user.getBranch().getBranchId());
+            }
+
+            UserMasterResponseDTO updated = userMasterService.update(user.getUserId(), requestDTO);
+            return ResponseEntity.ok(updated);
         }
 
         return ResponseEntity.status(404).body("User not found");

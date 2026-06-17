@@ -100,6 +100,16 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    public List<EnquiryResponseDTO> getAllEnquiriesOfUser(Integer userId) {
+        List<Enquiry> enquiryList = repository.findByUserUserId(userId);
+        List<EnquiryResponseDTO> dtoList = new ArrayList<>();
+        for (Enquiry enquiry : enquiryList) {
+            dtoList.add(mapToResponseDTO(enquiry));
+        }
+        return dtoList;
+    }
+
+    @Override
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Enquiry not found with ID: " + id);
@@ -141,6 +151,28 @@ public class EnquiryServiceImpl implements EnquiryService {
                 }
             } else {
                 throw new ResourceNotFoundException("Status not found with ID: " + requestDTO.getStatusId());
+            }
+        } else {
+            Optional<Status> defaultStatusOpt = statusDao.getStatusByNameAndType("Pending", "ENQUIRY");
+            if (defaultStatusOpt.isEmpty()) {
+                defaultStatusOpt = statusDao.getStatusByNameAndType("Open", "ENQUIRY");
+            }
+            if (defaultStatusOpt.isEmpty()) {
+                List<Status> enquiryStatuses = statusDao.getStatusesByType("ENQUIRY");
+                if (!enquiryStatuses.isEmpty()) {
+                    defaultStatusOpt = Optional.of(enquiryStatuses.get(0));
+                }
+            }
+            if (defaultStatusOpt.isPresent()) {
+                enquiry.setStatus(defaultStatusOpt.get());
+            } else {
+                Status newStatus = new Status();
+                newStatus.setStatusName("Pending");
+                newStatus.setStatusType("ENQUIRY");
+                newStatus.setStatusDescription("Pending Enquiry Status");
+                newStatus.setStatusFlg(1);
+                Status savedStatus = statusDao.save(newStatus);
+                enquiry.setStatus(savedStatus);
             }
         }
     }

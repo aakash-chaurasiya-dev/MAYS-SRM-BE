@@ -35,9 +35,10 @@ public class TicketServiceImpl implements TicketService {
     private final ModelMapper modelMapper;
     private final BillingDao billingDao;
     private final ChargeTypeDao chargeTypeDao;
+    private final BrandDao brandDao;
 
     @Autowired
-    public TicketServiceImpl(TicketDao repository, UserMasterDao userMasterDao, TicketTypeDao ticketTypeDao, StatusDao statusDao, DeviceDao deviceDao, BranchDao branchDao, EmployeeDao employeeDao, TicketLogsDao ticketLogsDao, DeviceModelDao deviceModelDao, ModelMapper modelMapper, BillingDao billingDao, ChargeTypeDao chargeTypeDao) {
+    public TicketServiceImpl(TicketDao repository, UserMasterDao userMasterDao, TicketTypeDao ticketTypeDao, StatusDao statusDao, DeviceDao deviceDao, BranchDao branchDao, EmployeeDao employeeDao, TicketLogsDao ticketLogsDao, DeviceModelDao deviceModelDao, ModelMapper modelMapper, BillingDao billingDao, ChargeTypeDao chargeTypeDao, BrandDao brandDao) {
         this.repository = repository;
         this.userMasterDao = userMasterDao;
         this.ticketTypeDao = ticketTypeDao;
@@ -50,6 +51,7 @@ public class TicketServiceImpl implements TicketService {
         this.modelMapper = modelMapper;
         this.billingDao = billingDao;
         this.chargeTypeDao = chargeTypeDao;
+        this.brandDao = brandDao;
     }
 
     @Override
@@ -315,23 +317,43 @@ public class TicketServiceImpl implements TicketService {
 
     private void handleDeviceCreation(Ticket ticket, TicketRequestDTO requestDTO) {
         if (requestDTO.getDeviceSerialNo() != null) {
-            Optional<Device> deviceOpt = deviceDao.findById(requestDTO.getDeviceSerialNo());
-            if (deviceOpt.isPresent()) {
-                ticket.setDevice(deviceOpt.get());
-            } else {
-                // Create a new device if it doesn't exist
-                Device newDevice = new Device();
-                newDevice.setSerialNo(requestDTO.getDeviceSerialNo());
-                if (requestDTO.getDeviceModelId() != null) {
-                    Optional<DeviceModel> modelOpt = deviceModelDao.findById(requestDTO.getDeviceModelId());
-                    if (modelOpt.isPresent()) {
-                        newDevice.setModel(modelOpt.get());
-                    } else {
-                        throw new ResourceNotFoundException("Device Model not found with ID: " + requestDTO.getDeviceModelId());
-                    }
+            // 1. Resolve DeviceModel
+            DeviceModel resolvedModel = null;
+            if (requestDTO.getDeviceModelId() != null) {
+                resolvedModel = deviceModelDao.findById(requestDTO.getDeviceModelId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Device Model not found with ID: " + requestDTO.getDeviceModelId()));
+            } else if (requestDTO.getCustomModelName() != null && !requestDTO.getCustomModelName().trim().isEmpty() && requestDTO.getBrandId() != null) {
+                String customName = requestDTO.getCustomModelName().trim();
+                Optional<DeviceModel> existingModelOpt = deviceModelDao.findByModelNameIgnoreCaseAndBrandBrandId(customName, requestDTO.getBrandId());
+                if (existingModelOpt.isPresent()) {
+                    resolvedModel = existingModelOpt.get();
+                } else {
+                    // Create new DeviceModel
+                    Brand brand = brandDao.findById(requestDTO.getBrandId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Brand not found with ID: " + requestDTO.getBrandId()));
+                    DeviceModel newModel = new DeviceModel();
+                    newModel.setModelName(customName);
+                    newModel.setBrand(brand);
+                    newModel.setModelDescription("Custom created model");
+                    resolvedModel = deviceModelDao.save(newModel);
                 }
-                ticket.setDevice(deviceDao.save(newDevice));
             }
+
+            // 2. Resolve/Update Device
+            Optional<Device> deviceOpt = deviceDao.findById(requestDTO.getDeviceSerialNo());
+            Device device;
+            if (deviceOpt.isPresent()) {
+                device = deviceOpt.get();
+            } else {
+                device = new Device();
+                device.setSerialNo(requestDTO.getDeviceSerialNo());
+            }
+
+            if (resolvedModel != null) {
+                device.setModel(resolvedModel);
+            }
+            
+            ticket.setDevice(deviceDao.save(device));
         }
     }
 

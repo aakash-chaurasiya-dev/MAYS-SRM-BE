@@ -92,12 +92,17 @@ public class UserMasterServiceImpl implements UserMasterService {
             
             UserMaster existingUser = existingUserOpt.get();
             String currentPassword = existingUser.getPassword();
+            Boolean currentIsActive = existingUser.getIsActive();
             modelMapper.map(requestDTO, existingUser);
             
             if (requestDTO.getPassword() == null || requestDTO.getPassword().isEmpty()) {
                 existingUser.setPassword(currentPassword);
             } else if (!requestDTO.getPassword().startsWith("$2a$")) {
                 existingUser.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+            }
+
+            if (requestDTO.getIsActive() == null) {
+                existingUser.setIsActive(currentIsActive);
             }
 
             if (requestDTO.getBranchId() != null) {

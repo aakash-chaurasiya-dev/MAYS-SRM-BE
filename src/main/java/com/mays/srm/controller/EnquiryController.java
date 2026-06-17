@@ -40,6 +40,11 @@ public class EnquiryController {
         return ResponseEntity.ok(updatedDto);
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiriesOfUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(enquiryService.getAllEnquiriesOfUser(userId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEnquiry(@PathVariable Integer id) {
         enquiryService.delete(id);

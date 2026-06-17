@@ -22,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -72,6 +73,25 @@ public class SecurityConfig {
                                 "/api/users/**",
                                 "/api/employee-specs/**"
                         ).hasRole("MANAGER")
+
+                        // 2b. CUSTOMER ACCESS: Allow read metadata and ticket operations for customers (ROLE_USER)
+                        .requestMatchers(HttpMethod.GET, "/api/devices/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/devicetypes/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/devicemodels/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/ticket-types/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/branches/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/brands/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST, "/api/tickets").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/tickets/*").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/user/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/tickets/*").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/enquiries/user/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.POST, "/api/enquiries").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/enquiries/*").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/enquiries/*").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers("/api/enquiries/**").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN")
+                        .requestMatchers("/api/tickets/*/attachments").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                        .requestMatchers("/api/ticket-logs/*").hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN")
 
                         // 3. TICKETS, DEVICES, BRANCHES, STATUSES: Accessible by Manager, Purchase, Engineer, and Admin
                         .requestMatchers(
