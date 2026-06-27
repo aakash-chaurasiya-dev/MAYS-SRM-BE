@@ -1,4 +1,4 @@
-package com.mays.srm.dto.requestDTO;
+package com.mays.srm.dto.requestDTO.TicketDTO;
 
 import lombok.Data;
 
@@ -15,7 +15,8 @@ public class TicketRequestDTO {
     private String warrantyType;
     private String priority;
     private String remarks; // Added for logging purposes during updates
-    
+    private Integer modifiedByEmployeeId; // Employee making the update
+
     // Optional field for creating a new device along with the ticket
     private Integer deviceModelId;
     private String customModelName;

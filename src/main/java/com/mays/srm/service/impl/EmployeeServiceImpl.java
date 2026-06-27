@@ -3,10 +3,12 @@ package com.mays.srm.service.impl;
 import com.mays.srm.dao.core.DepartmentDao;
 import com.mays.srm.dao.core.EmployeeDao;
 import com.mays.srm.dao.core.EmployeeSpecDao; // Keep this import for now, but it will be removed
+import com.mays.srm.dao.core.UserMasterDao;
 import com.mays.srm.dto.requestDTO.EmployeeRequestDTO;
 import com.mays.srm.dto.responseDTO.EmployeeResponseDTO;
 import com.mays.srm.entity.Department;
 import com.mays.srm.entity.Employee;
+import com.mays.srm.entity.UserMaster;
 import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
@@ -30,21 +32,24 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentDao departmentDao;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
+    private final UserMasterDao userMasterDao;
 
     // EmployeeSpecDao is no longer needed for explicit deletion due to cascade
     // private final EmployeeSpecDao employeeSpecDao;
 
     @Autowired
-    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, UserMasterDao userMasterDao) {
         this.repository = repository;
         this.departmentDao = departmentDao;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
+        this.userMasterDao = userMasterDao;
     }
 
     @Override
     public EmployeeResponseDTO create(EmployeeRequestDTO requestDTO) {
         try {
+            validateMobileNumber(requestDTO.getMobileNo(), null, null);
             Employee employee = modelMapper.map(requestDTO, Employee.class);
 
             validateAndSetRelations(employee, requestDTO);
@@ -87,6 +92,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Employee not found with ID: " + id);
         }
+
+        validateMobileNumber(requestDTO.getMobileNo(), id, null);
 
         Employee existingEmployee = existingOpt.get();
         String currentPassword = existingEmployee.getPassword();
@@ -158,6 +165,29 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employees.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void validateMobileNumber(String mobileNo, Integer currentEmployeeId, Integer currentUserId) {
+        if (mobileNo == null || mobileNo.trim().isEmpty()) {
+            return;
+        }
+
+        // Check Employee table
+        Optional<Employee> employeeOpt = repository.findByMobileNo(mobileNo);
+        if (employeeOpt.isPresent()) {
+            if (currentEmployeeId == null || !employeeOpt.get().getEmployeeId().equals(currentEmployeeId)) {
+                throw new BadRequestException("Mobile number is already registered as an Employee.");
+            }
+        }
+
+        // Check User table
+        Optional<UserMaster> userOpt = userMasterDao.findByMobileNo(mobileNo);
+        if (userOpt.isPresent()) {
+            if (currentUserId == null || !userOpt.get().getUserId().equals(currentUserId)) {
+                throw new BadRequestException("Mobile number is already registered as a User.");
+            }
+        }
     }
 
     private void validateAndSetRelations(Employee employee, EmployeeRequestDTO requestDTO) {

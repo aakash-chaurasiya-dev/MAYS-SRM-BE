@@ -32,12 +32,21 @@ public class TicketLogs {
     @Column(name = "modification_date")
     private LocalDateTime modificationDate;
 
-    @Column(name = "old_status", columnDefinition = "TEXT")
-    private String oldStatus;
-
-    @Column(name = "new_status", columnDefinition = "TEXT")
-    private String newStatus;
-
     @Column(name = "assignor_remarks", columnDefinition = "TEXT")
     private String assignorRemarks;
+
+    @ManyToOne
+    @JoinColumn(name = "old_status")
+    private Status oldStatus;
+
+    @ManyToOne
+    @JoinColumn(name = "new_status")
+    private Status newStatus;
+
+    @Column(name = "changed_fields", columnDefinition = "json")
+    private String changedFields;
+
+    @ManyToOne
+    @JoinColumn(name = "modified_by")
+    private Employee modifiedBy;
 }

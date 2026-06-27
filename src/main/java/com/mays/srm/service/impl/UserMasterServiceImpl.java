@@ -8,6 +8,7 @@ import com.mays.srm.entity.Branch;
 import com.mays.srm.entity.UserMaster;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
+import com.mays.srm.service.EmployeeService;
 import com.mays.srm.service.UserMasterService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +27,21 @@ public class UserMasterServiceImpl implements UserMasterService {
     private final BranchDao branchDao;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
+    private final EmployeeService employeeService;
 
     @Autowired
-    public UserMasterServiceImpl(UserMasterDao repository, BranchDao branchDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+    public UserMasterServiceImpl(UserMasterDao repository, BranchDao branchDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, EmployeeService employeeService) {
         this.repository = repository;
         this.branchDao = branchDao;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
+        this.employeeService = employeeService;
     }
 
     @Override
     public UserMasterResponseDTO create(UserMasterRequestDTO requestDTO) {
         try {
+            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, null);
             UserMaster user = modelMapper.map(requestDTO, UserMaster.class);
             
             if (requestDTO.getBranchId() != null) {
@@ -90,6 +94,8 @@ public class UserMasterServiceImpl implements UserMasterService {
                 throw new ResourceNotFoundException("Cannot update. User not found with ID: " + id);
             }
             
+            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, id);
+
             UserMaster existingUser = existingUserOpt.get();
             String currentPassword = existingUser.getPassword();
             Boolean currentIsActive = existingUser.getIsActive();

@@ -1,4 +1,4 @@
-package com.mays.srm.dto.responseDTO;
+package com.mays.srm.dto.responseDTO.TicketLogsDTO;
 
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -12,5 +12,7 @@ public class TicketLogsResponseDTO {
     private LocalDateTime modificationDate;
     private String oldStatus;
     private String newStatus;
+    private String changedFields;
+    private String modifiedBy;
     private String assignorRemarks;
 }
