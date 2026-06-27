@@ -8,4 +8,5 @@ import java.util.List;
 public interface EmployeeService extends GenericService<EmployeeRequestDTO, EmployeeResponseDTO, Integer> {
     List<EmployeeResponseDTO> getEmployeesByDepartmentId(Integer departmentId);
     void deleteEmployees(List<Integer> ids); // New method for multiple deletions
+    void validateMobileNumber(String mobileNo, Integer currentEmployeeId, Integer currentUserId);
 }

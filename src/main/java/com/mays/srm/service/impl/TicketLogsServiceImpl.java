@@ -1,7 +1,8 @@
 package com.mays.srm.service.impl;
 
 import com.mays.srm.dao.core.TicketLogsDao;
-import com.mays.srm.dto.responseDTO.TicketLogsResponseDTO;
+import com.mays.srm.dto.responseDTO.TicketLogsDTO.TicketLogsResponseDTO;
+import com.mays.srm.dto.responseDTO.TicketLogsDTO.TicketLogsSummaryResponseDTO;
 import com.mays.srm.entity.TicketLogs;
 import com.mays.srm.service.TicketLogsService;
 import org.modelmapper.ModelMapper;
@@ -25,7 +26,7 @@ public class TicketLogsServiceImpl implements TicketLogsService {
 
     @Override
     public List<TicketLogsResponseDTO> getLogsForTicket(Integer ticketId) {
-        List<TicketLogs> logList = repository.findByTicketTicketIdOrderByModificationDateDesc(ticketId);
+        List<TicketLogs> logList = repository.getDetailedTicketLogs(ticketId);
         List<TicketLogsResponseDTO> dtoList = new ArrayList<>();
         for (TicketLogs log : logList) {
             dtoList.add(mapToResponseDTO(log));
@@ -33,6 +34,12 @@ public class TicketLogsServiceImpl implements TicketLogsService {
         return dtoList;
     }
 
+    @Override
+    public List<TicketLogsSummaryResponseDTO> getLatestLogsForTicket(Integer ticketId) {
+        return repository.getTicketLogsForTicketDetail(ticketId);
+    }
+
+    
     private TicketLogsResponseDTO mapToResponseDTO(TicketLogs log) {
         TicketLogsResponseDTO dto = modelMapper.map(log, TicketLogsResponseDTO.class);
         if (log.getTicket() != null) {
@@ -44,6 +51,16 @@ public class TicketLogsServiceImpl implements TicketLogsService {
         if (log.getAssigneeEmployee() != null) {
             dto.setAssigneeEmployeeName(log.getAssigneeEmployee().getEmployeeName());
         }
+        if (log.getOldStatus() != null) {
+            dto.setOldStatus(log.getOldStatus().getStatusName());
+        }
+        if (log.getNewStatus() != null) {
+            dto.setNewStatus(log.getNewStatus().getStatusName());
+        }
+        if (log.getModifiedBy() != null) {
+            dto.setModifiedBy(log.getModifiedBy().getEmployeeName());
+        }
+        dto.setChangedFields(log.getChangedFields());
         return dto;
     }
 }

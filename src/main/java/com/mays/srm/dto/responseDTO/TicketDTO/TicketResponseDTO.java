@@ -1,4 +1,4 @@
-package com.mays.srm.dto.responseDTO;
+package com.mays.srm.dto.responseDTO.TicketDTO;
 
 import lombok.Data;
 import java.time.LocalDateTime;

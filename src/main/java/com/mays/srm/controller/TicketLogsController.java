@@ -1,6 +1,7 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.dto.responseDTO.TicketLogsResponseDTO;
+import com.mays.srm.dto.responseDTO.TicketLogsDTO.TicketLogsResponseDTO;
+import com.mays.srm.dto.responseDTO.TicketLogsDTO.TicketLogsSummaryResponseDTO;
 import com.mays.srm.service.TicketLogsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,12 @@ public class TicketLogsController {
     @GetMapping("/{ticketId}")
     public ResponseEntity<List<TicketLogsResponseDTO>> getLogsForTicket(@PathVariable Integer ticketId) {
         List<TicketLogsResponseDTO> responseDTOs = ticketLogsService.getLogsForTicket(ticketId);
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @GetMapping("/{ticketId}/latest")
+    public ResponseEntity<List<TicketLogsSummaryResponseDTO>> getLatestLogsForTicket(@PathVariable Integer ticketId) {
+        List<TicketLogsSummaryResponseDTO> responseDTOs = ticketLogsService.getLatestLogsForTicket(ticketId);
         return ResponseEntity.ok(responseDTOs);
     }
 }

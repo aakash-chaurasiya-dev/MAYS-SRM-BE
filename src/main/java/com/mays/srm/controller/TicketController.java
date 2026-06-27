@@ -1,8 +1,13 @@
 package com.mays.srm.controller;
 
-import com.mays.srm.dto.requestDTO.TicketRequestDTO;
-import com.mays.srm.dto.responseDTO.TicketResponseDTO;
+import com.mays.srm.dto.requestDTO.TicketDTO.TicketRequestDTO;
+import com.mays.srm.dto.responseDTO.TicketDTO.TicketResponseDTO;
+import com.mays.srm.dto.responseDTO.TicketDTO.TicketDashboardResponseDTO;
 import com.mays.srm.entity.TicketAttachment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import com.mays.srm.service.FileServerService;
 import com.mays.srm.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +26,7 @@ public class TicketController {
 
     @Autowired
     private FileServerService fileServerService;
-    
+
     // Assuming you will create a service for attachments later
     // For now, direct DAO usage is here for simplicity
     @Autowired
@@ -44,9 +49,38 @@ public class TicketController {
         List<TicketResponseDTO> responseDTOs = ticketService.getAll();
         return ResponseEntity.ok(responseDTOs);
     }
+// --- DashBoard Endpoints ---
+    @GetMapping("/dashboard")
+    public ResponseEntity<Page<TicketDashboardResponseDTO>> getTickets(
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
+        
+        Pageable pageable = PageRequest.of(offset, limit);
+        Page<TicketDashboardResponseDTO> tickets = ticketService.getTicketsForDashboard(pageable);
+        
+        return ResponseEntity.ok(tickets);
+    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TicketResponseDTO> updateTicket(@PathVariable Integer id, @RequestBody TicketRequestDTO requestDTO) {
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<com.mays.srm.dto.responseDTO.TicketDTO.DashboardTicketStatsResponseDTO> getDashboardStats() {
+        return ResponseEntity.ok(ticketService.getDashboardTicketStats());
+    }
+
+    @GetMapping("/dashboard/department/{departmentName}")
+    public ResponseEntity<Page<TicketDashboardResponseDTO>> getTicketsByDepartment(
+            @PathVariable String departmentName,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
+        
+        Pageable pageable = PageRequest.of(offset, limit);
+        Page<TicketDashboardResponseDTO> tickets = ticketService.getTicketsByDepartmentDashboard(departmentName, pageable);
+        
+        return ResponseEntity.ok(tickets);
+    }
+    // --- Update and Delete Endpoints ---
+    @PatchMapping("/{id}")
+    public ResponseEntity<TicketResponseDTO> updateTicket(@PathVariable Integer id,
+            @RequestBody TicketRequestDTO requestDTO) {
         TicketResponseDTO updatedDto = ticketService.update(id, requestDTO);
         return ResponseEntity.ok(updatedDto);
     }
@@ -58,7 +92,7 @@ public class TicketController {
     }
 
     // --- Search Endpoints ---
-    
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TicketResponseDTO>> getAllTicketsOfUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(ticketService.getAllTicketsOfUser(userId));
@@ -84,9 +118,8 @@ public class TicketController {
     @PostMapping("/{ticketId}/attachments")
     public ResponseEntity<TicketAttachment> uploadAttachment(
             @PathVariable int ticketId,
-            @RequestParam("file") MultipartFile file
-    ) throws Exception {
-        
+            @RequestParam("file") MultipartFile file) throws Exception {
+
         String sanitizedFilename = "unknown_file";
         if (file.getOriginalFilename() != null) {
             sanitizedFilename = file.getOriginalFilename().replaceAll("\\s+", "_");
