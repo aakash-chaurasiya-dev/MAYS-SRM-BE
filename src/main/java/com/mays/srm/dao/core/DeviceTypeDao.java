@@ -1,6 +1,5 @@
 package com.mays.srm.dao.core;
-
-import com.mays.srm.entity.DeviceType;
+import com.mays.srm.device.entities.DeviceType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

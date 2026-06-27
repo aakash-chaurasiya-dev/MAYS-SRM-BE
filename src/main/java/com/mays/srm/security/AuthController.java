@@ -1,5 +1,5 @@
 package com.mays.srm.security;
-
+import com.mays.srm.organization.entities.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,24 +15,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mays.srm.dao.core.EmployeeDao;
 import com.mays.srm.dao.core.UserMasterDao;
-import com.mays.srm.entity.Employee;
-import com.mays.srm.entity.UserMaster;
-import com.mays.srm.entity.Branch;
-import com.mays.srm.entity.Department;
+import com.mays.srm.user.entities.Employee;
+import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.organization.entities.Branch;
+import com.mays.srm.organization.entities.Department;
 
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 
-import com.mays.srm.dto.responseDTO.EmployeeResponseDTO;
-import com.mays.srm.dto.responseDTO.UserMasterResponseDTO;
+import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
+import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import org.modelmapper.ModelMapper;
-import com.mays.srm.service.UserMasterService;
-import com.mays.srm.service.BranchService;
-import com.mays.srm.service.EmployeeService;
-import com.mays.srm.dto.requestDTO.UserMasterRequestDTO;
-import com.mays.srm.dto.requestDTO.EmployeeRequestDTO;
-import com.mays.srm.dto.responseDTO.BranchResponseDTO;
+import com.mays.srm.user.service.UserMasterService;
+import com.mays.srm.organization.service.BranchService;
+import com.mays.srm.user.service.EmployeeService;
+import com.mays.srm.user.dto.request.UserMasterRequestDTO;
+import com.mays.srm.user.dto.request.EmployeeRequestDTO;
+import com.mays.srm.organization.dto.resDTO.BranchResponseDTO;
 
 // STEP 6: THE TICKET BOOTH (AuthController)
 // The user needs an actual URL (`/api/auth/login`) to send their mobile number and password to.

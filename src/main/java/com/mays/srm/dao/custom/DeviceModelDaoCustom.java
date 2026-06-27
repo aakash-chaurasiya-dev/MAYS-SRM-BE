@@ -1,6 +1,5 @@
 package com.mays.srm.dao.custom;
-
-import com.mays.srm.entity.DeviceModel;
+import com.mays.srm.device.entities.DeviceModel;
 
 import java.util.List;
 import java.util.Optional;

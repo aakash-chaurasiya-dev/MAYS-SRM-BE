@@ -1,5 +1,4 @@
 package com.mays.srm.exception;
-
 public class ErrorResponse {
     private int status;
     private String message;

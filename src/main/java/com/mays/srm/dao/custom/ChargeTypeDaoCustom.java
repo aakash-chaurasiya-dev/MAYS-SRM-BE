@@ -1,6 +1,5 @@
 package com.mays.srm.dao.custom;
-
-import com.mays.srm.entity.ChargeType;
+import com.mays.srm.billing.entities.ChargeType;
 import java.util.Optional;
 
 public interface ChargeTypeDaoCustom {

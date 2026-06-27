@@ -1,7 +1,6 @@
 package com.mays.srm.dao.core;
-
 import com.mays.srm.dao.custom.StatusDaoCustom;
-import com.mays.srm.entity.Status;
+import com.mays.srm.organization.entities.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

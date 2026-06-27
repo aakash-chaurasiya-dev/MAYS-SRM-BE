@@ -1,6 +1,5 @@
 package com.mays.srm.dao.custom;
-
-import com.mays.srm.entity.Status;
+import com.mays.srm.organization.entities.Status;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,7 +1,6 @@
 package com.mays.srm.dao.core;
-
-import com.mays.srm.dao.custom.TicketLogsDaoCustom;
-import com.mays.srm.entity.TicketLogs;
+import com.mays.srm.ticket.repository.custom.TicketLogsDaoCustom;
+import com.mays.srm.ticket.entities.TicketLogs;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

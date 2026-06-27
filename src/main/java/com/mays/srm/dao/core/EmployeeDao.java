@@ -1,7 +1,6 @@
 package com.mays.srm.dao.core;
-
 import com.mays.srm.dao.custom.EmployeeDaoCustom;
-import com.mays.srm.entity.Employee;
+import com.mays.srm.user.entities.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,5 +1,4 @@
 package com.mays.srm.service;
-
 import java.util.List;
 
 public interface GenericService<REQ_DTO,RES_DTO, ID> {

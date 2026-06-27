@@ -1,7 +1,6 @@
 package com.mays.srm.dao.customImpl;
-
 import com.mays.srm.dao.custom.DeviceModelDaoCustom;
-import com.mays.srm.entity.DeviceModel;
+import com.mays.srm.device.entities.DeviceModel;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;

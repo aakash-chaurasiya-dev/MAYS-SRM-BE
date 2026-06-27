@@ -1,7 +1,6 @@
 package com.mays.srm.dao.custom;
-
 import com.mays.srm.dao.core.UserMasterDao;
-import com.mays.srm.entity.UserMaster;
+import com.mays.srm.user.entities.UserMaster;
 
 import java.util.List;
 import java.util.Optional;
