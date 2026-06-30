@@ -1,5 +1,5 @@
 package com.mays.srm.organization.service.impl;
-import com.mays.srm.dao.core.StatusDao;
+import com.mays.srm.organization.repository.StatusDao;
 import com.mays.srm.organization.dto.request.StatusRequestDTO;
 import com.mays.srm.organization.dto.resDTO.StatusResponseDTO;
 import com.mays.srm.organization.entities.Status;
@@ -101,3 +101,4 @@ public class StatusServiceImpl implements StatusService {
         return dtoList;
     }
 }
+

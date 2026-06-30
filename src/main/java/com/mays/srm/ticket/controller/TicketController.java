@@ -1,16 +1,17 @@
 package com.mays.srm.ticket.controller;
-import com.mays.srm.dao.core.TicketAttachmentDao;
+import com.mays.srm.ticket.repository.TicketAttachmentDao;
 import com.mays.srm.ticket.entities.Ticket;
-import com.mays.srm.ticket.dto.resDTO.DashboardTicketStatsResponseDTO;
+import com.mays.srm.ticket.entities.TicketAttachment;
+import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
-import com.mays.srm.entity.TicketAttachment;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import com.mays.srm.service.FileServerService;
+
+import com.mays.srm.ticket.service.FileServerService;
 import com.mays.srm.ticket.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class TicketController {
     // Assuming you will create a service for attachments later
     // For now, direct DAO usage is here for simplicity
     @Autowired
-    private com.mays.srm.dao.core.TicketAttachmentDao ticketAttachmentDao;
+    private TicketAttachmentDao ticketAttachmentDao;
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody TicketRequestDTO requestDTO) {
@@ -64,7 +65,7 @@ public class TicketController {
     }
 
     @GetMapping("/dashboard/stats")
-    public ResponseEntity<DashboardTicketStatsResponseDTO> getDashboardStats() {
+    public ResponseEntity<TicketDashboardTicketStatsResponseDTO> getDashboardStats() {
         return ResponseEntity.ok(ticketService.getDashboardTicketStats());
     }
 
@@ -151,3 +152,4 @@ public class TicketController {
         return ResponseEntity.ok(attachments);
     }
 }
+

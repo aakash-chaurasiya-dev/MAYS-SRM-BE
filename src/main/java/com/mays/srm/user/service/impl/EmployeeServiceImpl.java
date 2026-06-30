@@ -1,14 +1,14 @@
 package com.mays.srm.user.service.impl;
 import com.mays.srm.user.entities.EmployeeSpec;
-import com.mays.srm.dao.core.DepartmentDao;
-import com.mays.srm.dao.core.EmployeeDao;
-import com.mays.srm.dao.core.EmployeeSpecDao; // Keep this import for now, but it will be removed
-import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.organization.repository.DepartmentDao;
 import com.mays.srm.user.dto.request.EmployeeRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
 import com.mays.srm.organization.entities.Department;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.repository.EmployeeDao;
+import com.mays.srm.user.repository.EmployeeSpecDao;
+import com.mays.srm.user.repository.UserMasterDao;
 import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
@@ -229,3 +229,4 @@ public class EmployeeServiceImpl implements EmployeeService {
         return dto;
     }
 }
+

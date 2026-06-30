@@ -1,11 +1,11 @@
 package com.mays.srm.ticket.service.impl;
-import com.mays.srm.dao.core.BrandDao;
-import com.mays.srm.dao.core.DeviceDao;
-import com.mays.srm.dao.core.DeviceModelDao;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.device.entities.Brand;
 import com.mays.srm.device.entities.Device;
 import com.mays.srm.device.entities.DeviceModel;
+import com.mays.srm.device.repository.BrandDao;
+import com.mays.srm.device.repository.DeviceDao;
+import com.mays.srm.device.repository.DeviceModelDao;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,7 @@
 package com.mays.srm.ticket.service.impl;
-import com.mays.srm.dao.core.BranchDao;
-import com.mays.srm.dao.core.EmployeeDao;
-import com.mays.srm.dao.core.StatusDao;
-import com.mays.srm.dao.core.TicketTypeDao;
-import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.organization.repository.BranchDao;
+import com.mays.srm.organization.repository.StatusDao;
+import com.mays.srm.ticket.repository.TicketTypeDao;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.organization.entities.Branch;
 import com.mays.srm.user.entities.Employee;
@@ -11,6 +9,8 @@ import com.mays.srm.organization.entities.Status;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.entities.TicketType;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.repository.EmployeeDao;
+import com.mays.srm.user.repository.UserMasterDao;
 import com.mays.srm.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,3 +91,4 @@ public class TicketValidationService {
         }
     }
 }
+

@@ -1,0 +1,16 @@
+package com.mays.srm.user.repository;
+import com.mays.srm.user.repository.EmployeeDaoCustom;
+import com.mays.srm.user.entities.Employee;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface EmployeeDao extends JpaRepository<Employee, Integer>, EmployeeDaoCustom {
+    Optional<Employee> findByMobileNo(String mobileNo);
+    Optional<Employee> findByEmail(String email);
+    List<Employee> findByDepartmentDepartmentId(Integer departmentId);
+}
+

@@ -9,6 +9,7 @@ public class TicketResponseDTO {
     private String userLastName;
     private String userMobileNo;
     private String ticketTypeName;
+    private Integer ticketStatusId; // Added field
     private String ticketStatusName;
     private String emailId;
     private String deviceSerialNo;
@@ -17,7 +18,9 @@ public class TicketResponseDTO {
     private String deviceBrandName;
     private String ticketDescription;
     private String branchName;
+    private Integer employeeId; // Added field
     private String employeeName;
+    private Integer departmentId; // Added field
     private String departmentName; // Added field
     private String warrantyType;
     private String priority;

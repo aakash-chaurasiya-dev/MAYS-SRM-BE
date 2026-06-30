@@ -1,6 +1,6 @@
 package com.mays.srm.organization.service.impl;
 import com.mays.srm.user.entities.Employee;
-import com.mays.srm.dao.core.DepartmentDao;
+import com.mays.srm.organization.repository.DepartmentDao;
 import com.mays.srm.organization.dto.request.DepartmentRequestDTO;
 import com.mays.srm.organization.dto.resDTO.DepartmentResponseDTO;
 import com.mays.srm.organization.entities.Department;
@@ -91,3 +91,4 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
     }
 }
+

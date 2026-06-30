@@ -1,5 +1,4 @@
 package com.mays.srm.user.entities;
-import com.mays.srm.entity.EmployeeSpecId;
 import com.mays.srm.device.entities.DeviceType;
 import jakarta.persistence.*;
 import lombok.*;

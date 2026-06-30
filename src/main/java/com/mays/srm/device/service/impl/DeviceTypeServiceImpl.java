@@ -1,9 +1,9 @@
 package com.mays.srm.device.service.impl;
 import com.mays.srm.device.entities.Device;
-import com.mays.srm.dao.core.DeviceTypeDao;
 import com.mays.srm.device.dto.request.DeviceTypeRequestDTO;
 import com.mays.srm.device.dto.resDTO.DeviceTypeResponseDTO;
 import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.device.repository.DeviceTypeDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.device.service.DeviceTypeService;

@@ -1,10 +1,10 @@
 package com.mays.srm.ticket.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mays.srm.dao.core.EmployeeDao;
-import com.mays.srm.dao.core.StatusDao;
-import com.mays.srm.dao.core.TicketLogsDao;
+import com.mays.srm.organization.repository.StatusDao;
+import com.mays.srm.ticket.repository.TicketLogsDao;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.user.entities.Employee;
+import com.mays.srm.user.repository.EmployeeDao;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.entities.TicketLogs;
@@ -154,3 +154,4 @@ public class TicketAuditService {
         }
     }
 }
+

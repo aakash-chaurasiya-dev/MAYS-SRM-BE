@@ -1,7 +1,8 @@
 package com.mays.srm.core.controller;
-import com.mays.srm.service.GenericService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.mays.srm.core.service.GenericService;
 
 import java.util.List;
 

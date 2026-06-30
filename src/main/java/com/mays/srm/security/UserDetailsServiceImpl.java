@@ -1,8 +1,9 @@
 package com.mays.srm.security;
-import com.mays.srm.dao.core.EmployeeDao;
-import com.mays.srm.dao.core.UserMasterDao;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.repository.EmployeeDao;
+import com.mays.srm.user.repository.UserMasterDao;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

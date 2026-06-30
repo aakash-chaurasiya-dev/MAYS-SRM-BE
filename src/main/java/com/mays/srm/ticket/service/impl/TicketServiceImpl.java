@@ -1,7 +1,7 @@
 package com.mays.srm.ticket.service.impl;
-import com.mays.srm.dao.core.TicketDao;
+import com.mays.srm.ticket.repository.TicketDao;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
-import com.mays.srm.ticket.dto.resDTO.DashboardTicketStatsResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.entities.Ticket;
@@ -100,7 +100,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public DashboardTicketStatsResponseDTO getDashboardTicketStats() {
+    public TicketDashboardTicketStatsResponseDTO getDashboardTicketStats() {
         return ticketQueryService.getDashboardTicketStats();
     }
 
@@ -182,3 +182,4 @@ public class TicketServiceImpl implements TicketService {
         return ticketQueryService.getAllTicketsOfEmployee(employeeId);
     }
 }
+

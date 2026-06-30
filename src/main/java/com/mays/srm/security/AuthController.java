@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mays.srm.dao.core.EmployeeDao;
-import com.mays.srm.dao.core.UserMasterDao;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.repository.EmployeeDao;
+import com.mays.srm.user.repository.UserMasterDao;
 import com.mays.srm.organization.entities.Branch;
 import com.mays.srm.organization.entities.Department;
 

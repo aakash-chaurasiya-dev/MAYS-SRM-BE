@@ -1,7 +1,7 @@
 package com.mays.srm.ticket.service.impl;
-import com.mays.srm.dao.core.TicketDao;
+import com.mays.srm.ticket.repository.TicketDao;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
-import com.mays.srm.ticket.dto.resDTO.DashboardTicketStatsResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.exception.ResourceNotFoundException;
@@ -54,7 +54,7 @@ public class TicketQueryService {
         return ticketDao.getAllTicketDashboard(pageable);
     }
 
-    public DashboardTicketStatsResponseDTO getDashboardTicketStats() {
+    public TicketDashboardTicketStatsResponseDTO getDashboardTicketStats() {
         return ticketDao.getDashboardTicketStats();
     }
 
@@ -110,3 +110,4 @@ public class TicketQueryService {
         return dtoList;
     }
 }
+

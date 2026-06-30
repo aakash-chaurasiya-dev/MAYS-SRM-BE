@@ -1,22 +1,20 @@
 package com.mays.srm.billing.service.impl;
 import com.mays.srm.billing.entities.ServiceCharges;
-import com.mays.srm.dao.core.TicketDao;
+import com.mays.srm.billing.repository.BillingDao;
+import com.mays.srm.billing.repository.ChargeTypeDao;
+import com.mays.srm.billing.repository.PaymentModeDetailsDao;
+import com.mays.srm.billing.repository.ServiceChargesDao;
+import com.mays.srm.ticket.repository.TicketDao;
 import com.mays.srm.inventory.entities.Inventory;
-import com.mays.srm.dao.core.ServiceChargesDao;
 import com.mays.srm.billing.entities.Billing;
-import com.mays.srm.dao.core.ChargeTypeDao;
-import com.mays.srm.dao.core.BillingDao;
 import com.mays.srm.billing.entities.ChargeType;
 import com.mays.srm.billing.entities.PaymentModeDetails;
-import com.mays.srm.dao.core.InventoryDao;
+import com.mays.srm.inventory.repository.InventoryDao;
 import com.mays.srm.ticket.entities.Ticket;
-import com.mays.srm.dao.core.PaymentModeDetailsDao;
 import com.mays.srm.organization.entities.Status;
-import com.mays.srm.dao.core.StatusDao;
-import com.mays.srm.dao.core.*;
+import com.mays.srm.organization.repository.StatusDao;
 import com.mays.srm.billing.dto.request.BillingRequestDTO;
 import com.mays.srm.billing.dto.resDTO.BillingResponseDTO;
-import com.mays.srm.entity.*;
 import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
@@ -329,3 +327,4 @@ public class BillingServiceImpl implements BillingService {
         return dto;
     }
 }
+

@@ -1,9 +1,9 @@
 package com.mays.srm.billing.service.impl;
 import com.mays.srm.billing.entities.Billing;
-import com.mays.srm.dao.core.PaymentModeDetailsDao;
 import com.mays.srm.billing.dto.request.PaymentModeDetailsRequestDTO;
 import com.mays.srm.billing.dto.resDTO.PaymentModeDetailsResponseDTO;
 import com.mays.srm.billing.entities.PaymentModeDetails;
+import com.mays.srm.billing.repository.PaymentModeDetailsDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.billing.service.PaymentModeDetailsService;

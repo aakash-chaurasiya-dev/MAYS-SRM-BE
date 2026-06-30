@@ -1,8 +1,8 @@
 package com.mays.srm.inventory.service.impl;
-import com.mays.srm.dao.core.InventoryDao;
-import com.mays.srm.dao.core.PartsDao;
-import com.mays.srm.dao.core.StatusDao;
-import com.mays.srm.dao.core.TicketDao;
+import com.mays.srm.inventory.repository.InventoryDao;
+import com.mays.srm.inventory.repository.PartsDao;
+import com.mays.srm.organization.repository.StatusDao;
+import com.mays.srm.ticket.repository.TicketDao;
 import com.mays.srm.inventory.dto.request.PartsRequestDTO;
 import com.mays.srm.inventory.dto.resDTO.PartsResponseDTO;
 import com.mays.srm.inventory.entities.Inventory;
@@ -185,3 +185,4 @@ public class PartsServiceImpl implements PartsService {
         return dto;
     }
 }
+

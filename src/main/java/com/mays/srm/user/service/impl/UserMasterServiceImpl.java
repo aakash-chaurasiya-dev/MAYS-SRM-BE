@@ -1,10 +1,10 @@
 package com.mays.srm.user.service.impl;
-import com.mays.srm.dao.core.BranchDao;
-import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.organization.repository.BranchDao;
 import com.mays.srm.user.dto.request.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.organization.entities.Branch;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.repository.UserMasterDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.user.service.EmployeeService;
@@ -201,3 +201,4 @@ public class UserMasterServiceImpl implements UserMasterService {
         return dto;
     }
 }
+

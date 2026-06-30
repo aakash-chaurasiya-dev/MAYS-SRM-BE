@@ -1,7 +1,7 @@
 package com.mays.srm.billing.service;
-import com.mays.srm.service.GenericService;
 import com.mays.srm.billing.dto.request.BillingRequestDTO;
 import com.mays.srm.billing.dto.resDTO.BillingResponseDTO;
+import com.mays.srm.core.service.GenericService;
 
 import java.util.List;
 
