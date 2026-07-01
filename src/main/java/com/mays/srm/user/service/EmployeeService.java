@@ -1,5 +1,5 @@
 package com.mays.srm.user.service;
-import com.mays.srm.service.GenericService;
+import com.mays.srm.core.service.GenericService;
 import com.mays.srm.user.dto.request.EmployeeRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
 

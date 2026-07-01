@@ -1,13 +1,13 @@
 package com.mays.srm.user.service.impl;
-import com.mays.srm.dao.core.DeviceTypeDao;
-import com.mays.srm.dao.core.EmployeeDao;
-import com.mays.srm.dao.core.EmployeeSpecDao;
 import com.mays.srm.user.dto.request.EmployeeSpecRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeSpecResponseDTO;
 import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.device.repository.DeviceTypeDao;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.EmployeeSpec;
-import com.mays.srm.entity.EmployeeSpecId;
+import com.mays.srm.user.entities.EmployeeSpecId;
+import com.mays.srm.user.repository.EmployeeDao;
+import com.mays.srm.user.repository.EmployeeSpecDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.user.service.EmployeeSpecService;

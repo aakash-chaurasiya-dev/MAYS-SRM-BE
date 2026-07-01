@@ -63,7 +63,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/actuator/**"
                         ).permitAll()
 
                         // 2. EMPLOYEE MANAGEMENT: Only Manager can access
@@ -104,7 +107,11 @@ public class SecurityConfig {
                                 "/api/statuses/**"
                         ).hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN")
 
-                        // 4. EVERYTHING ELSE (Purchase related): Accessible by Manager and Purchase Team
+                        // 4. ACTUATOR: Sensitive endpoints restricted
+                        // .requestMatchers("/actuator/**").hasAnyRole("MANAGER", "ADMIN")
+
+
+                        // 5. EVERYTHING ELSE (Purchase related): Accessible by Manager and Purchase Team
                         // Since employee management is matched above, they are excluded from this.
                         .anyRequest().hasAnyRole("MANAGER", "PURCHASE")
                 )

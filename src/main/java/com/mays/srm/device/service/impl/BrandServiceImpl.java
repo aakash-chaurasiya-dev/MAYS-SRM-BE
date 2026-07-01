@@ -1,11 +1,11 @@
 package com.mays.srm.device.service.impl;
 import com.mays.srm.device.entities.Device;
-import com.mays.srm.dao.core.BrandDao;
-import com.mays.srm.dao.core.DeviceTypeDao;
 import com.mays.srm.device.dto.request.BrandRequestDTO;
 import com.mays.srm.device.dto.resDTO.BrandResponseDTO;
 import com.mays.srm.device.entities.Brand;
 import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.device.repository.BrandDao;
+import com.mays.srm.device.repository.DeviceTypeDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.device.service.BrandService;

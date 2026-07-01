@@ -1,7 +1,8 @@
 package com.mays.srm.ticket.controller;
 import com.mays.srm.ticket.dto.resDTO.TicketLogsResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketLogsSummaryResponseDTO;
-import com.mays.srm.service.TicketLogsService;
+import com.mays.srm.ticket.service.TicketLogsService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

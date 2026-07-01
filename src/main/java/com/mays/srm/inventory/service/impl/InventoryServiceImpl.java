@@ -1,13 +1,13 @@
 package com.mays.srm.inventory.service.impl;
 import com.mays.srm.billing.entities.Billing;
-import com.mays.srm.dao.core.BranchDao;
-import com.mays.srm.dao.core.BrandDao;
-import com.mays.srm.dao.core.InventoryDao;
+import com.mays.srm.organization.repository.BranchDao;
+import com.mays.srm.inventory.repository.InventoryDao;
 import com.mays.srm.inventory.dto.request.InventoryRequestDTO;
 import com.mays.srm.inventory.dto.resDTO.InventoryResponseDTO;
 import com.mays.srm.organization.entities.Branch;
 import com.mays.srm.device.entities.Brand;
 import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.device.repository.BrandDao;
 import com.mays.srm.inventory.entities.Inventory;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
@@ -159,3 +159,4 @@ public class InventoryServiceImpl implements InventoryService {
         return dto;
     }
 }
+

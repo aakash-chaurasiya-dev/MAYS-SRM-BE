@@ -1,5 +1,5 @@
 package com.mays.srm.organization.service.impl;
-import com.mays.srm.dao.core.BranchDao;
+import com.mays.srm.organization.repository.BranchDao;
 import com.mays.srm.organization.dto.request.BranchRequestDTO;
 import com.mays.srm.organization.dto.resDTO.BranchResponseDTO;
 import com.mays.srm.organization.entities.Branch;
@@ -83,3 +83,4 @@ public class BranchServiceImpl implements BranchService {
         }
     }
 }
+

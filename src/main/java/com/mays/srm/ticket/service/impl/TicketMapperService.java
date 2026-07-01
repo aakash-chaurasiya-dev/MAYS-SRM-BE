@@ -31,6 +31,7 @@ public class TicketMapperService {
             dto.setTicketTypeName(ticket.getTicketType().getTicketTypeName());
         }
         if (ticket.getTicketStatus() != null) {
+            dto.setTicketStatusId(ticket.getTicketStatus().getStatusId());
             dto.setTicketStatusName(ticket.getTicketStatus().getStatusName());
         }
         if (ticket.getDevice() != null) {
@@ -51,8 +52,10 @@ public class TicketMapperService {
             dto.setBranchName(ticket.getTicketBranch().getBranchName());
         }
         if (ticket.getEmployee() != null) {
+            dto.setEmployeeId(ticket.getEmployee().getEmployeeId());
             dto.setEmployeeName(ticket.getEmployee().getEmployeeName());
             if (ticket.getEmployee().getDepartment() != null) {
+                dto.setDepartmentId(ticket.getEmployee().getDepartment().getDepartmentId());
                 dto.setDepartmentName(ticket.getEmployee().getDepartment().getDepartmentName());
             }
         }

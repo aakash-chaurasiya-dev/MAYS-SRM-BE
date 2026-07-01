@@ -1,11 +1,11 @@
 package com.mays.srm.billing.service.impl;
 import com.mays.srm.billing.entities.Billing;
-import com.mays.srm.dao.core.ChargeTypeDao;
 import com.mays.srm.billing.dto.request.ChargeTypeRequestDTO;
 import com.mays.srm.billing.dto.resDTO.ChargeTypeResponseDTO;
 import com.mays.srm.billing.dto.resDTO.ServiceChargesResponseDTO;
 import com.mays.srm.billing.entities.ChargeType;
 import com.mays.srm.billing.entities.ServiceCharges;
+import com.mays.srm.billing.repository.ChargeTypeDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.billing.service.ChargeTypeService;

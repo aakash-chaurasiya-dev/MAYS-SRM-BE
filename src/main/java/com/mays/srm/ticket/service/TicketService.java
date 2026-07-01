@@ -1,6 +1,6 @@
 package com.mays.srm.ticket.service;
-import com.mays.srm.ticket.dto.resDTO.DashboardTicketStatsResponseDTO;
-import com.mays.srm.service.GenericService;
+import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
+import com.mays.srm.core.service.GenericService;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
@@ -15,6 +15,6 @@ public interface TicketService extends GenericService<TicketRequestDTO, TicketRe
     List<TicketResponseDTO> getAllTicketsOfStatus(int statusId);
     List<TicketResponseDTO> getAllTicketsOfEmployee(int employeeId);
     Page<TicketDashboardResponseDTO> getTicketsForDashboard(Pageable pageable);
-    DashboardTicketStatsResponseDTO getDashboardTicketStats();
+    TicketDashboardTicketStatsResponseDTO getDashboardTicketStats();
     Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable);
 }

@@ -1,9 +1,9 @@
 package com.mays.srm.ticket.service.impl;
-import com.mays.srm.dao.core.BillingDao;
-import com.mays.srm.dao.core.ChargeTypeDao;
-import com.mays.srm.dao.core.StatusDao;
+import com.mays.srm.organization.repository.StatusDao;
 import com.mays.srm.billing.entities.Billing;
 import com.mays.srm.billing.entities.ChargeType;
+import com.mays.srm.billing.repository.BillingDao;
+import com.mays.srm.billing.repository.ChargeTypeDao;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.ticket.entities.Ticket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,3 +62,4 @@ public class TicketBillingService {
         }
     }
 }
+

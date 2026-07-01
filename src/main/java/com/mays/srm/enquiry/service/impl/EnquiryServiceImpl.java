@@ -1,14 +1,14 @@
 package com.mays.srm.enquiry.service.impl;
-import com.mays.srm.dao.core.BrandDao;
-import com.mays.srm.dao.core.EnquiryDao;
-import com.mays.srm.dao.core.StatusDao;
-import com.mays.srm.dao.core.UserMasterDao;
+import com.mays.srm.enquiry.repository.EnquiryDao;
+import com.mays.srm.organization.repository.StatusDao;
 import com.mays.srm.enquiry.dto.request.EnquiryRequestDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryResponseDTO;
 import com.mays.srm.device.entities.Brand;
+import com.mays.srm.device.repository.BrandDao;
 import com.mays.srm.enquiry.entities.Enquiry;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.repository.UserMasterDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.enquiry.service.EnquiryService;
@@ -191,3 +191,4 @@ public class EnquiryServiceImpl implements EnquiryService {
         return dto;
     }
 }
+

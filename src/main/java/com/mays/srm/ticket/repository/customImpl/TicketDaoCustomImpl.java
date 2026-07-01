@@ -1,8 +1,8 @@
 package com.mays.srm.ticket.repository.customImpl;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.repository.custom.TicketDaoCustom;
-import com.mays.srm.ticket.dto.resDTO.DashboardTicketStatsResponseDTO;
-import com.mays.srm.ticket.dto.resDTO.DepartmentTicketCountDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketDashboardDepartmentTicketCountDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 
 import org.springframework.data.domain.Page;
@@ -60,23 +60,23 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
     }
 
     @Override
-    public DashboardTicketStatsResponseDTO getDashboardTicketStats() {
-        String statsQuery = "SELECT new com.mays.srm.ticket.dto.resDTO.DepartmentTicketCountDTO(" +
+    public TicketDashboardTicketStatsResponseDTO getDashboardTicketStats() {
+        String statsQuery = "SELECT new com.mays.srm.ticket.dto.resDTO.TicketDashboardDepartmentTicketCountDTO(" +
                 "dept.departmentName, COUNT(t.ticketId)) " +
                 "FROM Ticket t " +
                 "LEFT JOIN t.employee e " +
                 "LEFT JOIN e.department dept " +
                 "GROUP BY dept.departmentName";
 
-        TypedQuery<DepartmentTicketCountDTO> q = 
-                entityManager.createQuery(statsQuery, DepartmentTicketCountDTO.class);
+        TypedQuery<TicketDashboardDepartmentTicketCountDTO> q = 
+                entityManager.createQuery(statsQuery, TicketDashboardDepartmentTicketCountDTO.class);
         
-        List<DepartmentTicketCountDTO> departmentCounts = q.getResultList();
+        List<TicketDashboardDepartmentTicketCountDTO> departmentCounts = q.getResultList();
 
         Query countQ = entityManager.createQuery("SELECT COUNT(t) FROM Ticket t");
         long total = (Long) countQ.getSingleResult();
 
-        return new DashboardTicketStatsResponseDTO(total, departmentCounts);
+        return new TicketDashboardTicketStatsResponseDTO(total, departmentCounts);
     }
 
     @Override
