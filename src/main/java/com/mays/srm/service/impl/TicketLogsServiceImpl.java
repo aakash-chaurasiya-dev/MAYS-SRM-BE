@@ -1,9 +1,8 @@
 package com.mays.srm.service.impl;
-
 import com.mays.srm.dao.core.TicketLogsDao;
-import com.mays.srm.dto.responseDTO.TicketLogsDTO.TicketLogsResponseDTO;
-import com.mays.srm.dto.responseDTO.TicketLogsDTO.TicketLogsSummaryResponseDTO;
-import com.mays.srm.entity.TicketLogs;
+import com.mays.srm.ticket.dto.resDTO.TicketLogsResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketLogsSummaryResponseDTO;
+import com.mays.srm.ticket.entities.TicketLogs;
 import com.mays.srm.service.TicketLogsService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,4 @@
 package com.mays.srm.exception;
-
 public class InternalServerException extends RuntimeException {
     
     public InternalServerException(String message) {

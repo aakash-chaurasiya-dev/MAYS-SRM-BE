@@ -1,6 +1,5 @@
 package com.mays.srm.dao.core;
-
-import com.mays.srm.entity.Parts;
+import com.mays.srm.inventory.entities.Parts;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

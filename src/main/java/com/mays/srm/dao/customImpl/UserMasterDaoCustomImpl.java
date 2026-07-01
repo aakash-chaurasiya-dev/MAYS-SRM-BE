@@ -1,8 +1,7 @@
 package com.mays.srm.dao.customImpl;
-
 import com.mays.srm.dao.custom.UserMasterDaoCustom;
-import com.mays.srm.entity.Employee;
-import com.mays.srm.entity.UserMaster;
+import com.mays.srm.user.entities.Employee;
+import com.mays.srm.user.entities.UserMaster;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;

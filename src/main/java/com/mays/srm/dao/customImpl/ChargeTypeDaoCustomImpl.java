@@ -1,7 +1,6 @@
 package com.mays.srm.dao.customImpl;
-
 import com.mays.srm.dao.custom.ChargeTypeDaoCustom;
-import com.mays.srm.entity.ChargeType;
+import com.mays.srm.billing.entities.ChargeType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;

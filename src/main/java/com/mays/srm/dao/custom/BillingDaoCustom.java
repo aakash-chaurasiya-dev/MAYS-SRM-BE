@@ -1,6 +1,5 @@
 package com.mays.srm.dao.custom;
-
-import com.mays.srm.entity.Billing;
+import com.mays.srm.billing.entities.Billing;
 import java.util.List;
 import java.util.Optional;
 

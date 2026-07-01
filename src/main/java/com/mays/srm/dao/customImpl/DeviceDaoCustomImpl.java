@@ -1,7 +1,7 @@
 package com.mays.srm.dao.customImpl;
-
+import com.mays.srm.device.entities.Brand;
 import com.mays.srm.dao.custom.DeviceDaoCustom;
-import com.mays.srm.entity.Device;
+import com.mays.srm.device.entities.Device;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;

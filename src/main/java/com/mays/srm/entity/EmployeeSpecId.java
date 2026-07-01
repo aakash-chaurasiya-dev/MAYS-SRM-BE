@@ -1,5 +1,4 @@
 package com.mays.srm.entity;
-
 import lombok.*;
 import java.io.Serializable;
 

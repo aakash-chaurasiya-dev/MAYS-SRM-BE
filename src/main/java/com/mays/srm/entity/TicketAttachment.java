@@ -1,5 +1,5 @@
 package com.mays.srm.entity;
-
+import com.mays.srm.ticket.entities.Ticket;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;

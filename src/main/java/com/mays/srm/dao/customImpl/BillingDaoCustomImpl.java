@@ -1,7 +1,6 @@
 package com.mays.srm.dao.customImpl;
-
 import com.mays.srm.dao.custom.BillingDaoCustom;
-import com.mays.srm.entity.Billing;
+import com.mays.srm.billing.entities.Billing;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;

@@ -1,0 +1,31 @@
+package com.mays.srm.organization.entities;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "Branch")
+public class Branch {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "branch_id")
+    private Integer branchId;
+
+    @Column(name = "branch_name")
+    private String branchName;
+
+    @Column(name = "branch_description")
+    private String branchDescription;
+
+    public String getBranchName() {
+        return this.branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
+    }
+}

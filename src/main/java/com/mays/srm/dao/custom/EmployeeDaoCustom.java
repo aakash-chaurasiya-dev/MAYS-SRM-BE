@@ -1,6 +1,5 @@
 package com.mays.srm.dao.custom;
-
-import com.mays.srm.entity.Employee;
+import com.mays.srm.user.entities.Employee;
 
 import java.util.List;
 
