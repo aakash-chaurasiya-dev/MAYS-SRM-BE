@@ -3,6 +3,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +15,17 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // 1. The Secret Key (The ink used to stamp the wristband). Only this server knows it.
-    private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    // 1. The Secret Key (The ink used to stamp the wristband). Loaded from .env
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    // 2. The Expiration Time (How long does the wristband last?)
-    private final long JWT_EXPIRATION = 1000 * 60 * 60 * 24; // 1 day in milliseconds
+    // 2. The Expiration Time (How long does the wristband last?). Loaded from .env
+    @Value("${jwt.expiration:86400000}")
+    private long jwtExpiration;
+
+    private Key getSignInKey() {
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
+    }
 
     /**
      * ACTION 1: Generate the Token when someone successfully logs in.
@@ -31,8 +38,8 @@ public class JwtService {
                 .claim("name", customUser.getName()) // Add the user's name
                 .claim("userId", customUser.getUserId()) // Add the user's ID
                 .setIssuedAt(new Date()) // When was it made? Now.
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION)) // When does it die? 1 day.
-                .signWith(SECRET_KEY) // Sign it with our secret ink so nobody can forge it.
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)) // When does it die?
+                .signWith(getSignInKey()) // Sign it with our secret ink so nobody can forge it.
                 .compact(); // Create the final String token.
     }
 
@@ -64,7 +71,7 @@ public class JwtService {
     // Helper: Parse the token open using our secret key
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSignInKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody(); // Return the body containing Subject, Expiration, etc.
