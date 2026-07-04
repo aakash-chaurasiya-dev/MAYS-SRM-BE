@@ -1,5 +1,4 @@
 package com.mays.srm.ticket.service.impl;
-import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.repository.TicketTypeDao;
 import com.mays.srm.ticket.dto.request.TicketTypeRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketTypeResponseDTO;

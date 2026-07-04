@@ -1,4 +1,5 @@
 package com.mays.srm.ticket.service.impl;
+
 import com.mays.srm.ticket.repository.TicketDao;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
@@ -16,6 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+// This is Redies Changes: Import Spring Cache Annotations
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -32,12 +37,12 @@ public class TicketServiceImpl implements TicketService {
 
     @Autowired
     public TicketServiceImpl(TicketDao repository,
-                             TicketQueryService ticketQueryService,
-                             TicketMapperService ticketMapperService,
-                             TicketDeviceService ticketDeviceService,
-                             TicketValidationService ticketValidationService,
-                             TicketAuditService ticketAuditService,
-                             TicketBillingService ticketBillingService) {
+            TicketQueryService ticketQueryService,
+            TicketMapperService ticketMapperService,
+            TicketDeviceService ticketDeviceService,
+            TicketValidationService ticketValidationService,
+            TicketAuditService ticketAuditService,
+            TicketBillingService ticketBillingService) {
         this.repository = repository;
         this.ticketQueryService = ticketQueryService;
         this.ticketMapperService = ticketMapperService;
@@ -84,7 +89,9 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
+    // This is Redies Changes: Cache the ticket response using Redis
     @Override
+    @Cacheable(value = "tickets", key = "#id")
     public TicketResponseDTO getById(Integer id) {
         return ticketQueryService.getById(id);
     }
@@ -100,6 +107,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
+    @Cacheable(value = "tickets", key = "'dashboardStats'")
     public TicketDashboardTicketStatsResponseDTO getDashboardTicketStats() {
         return ticketQueryService.getDashboardTicketStats();
     }
@@ -109,8 +117,10 @@ public class TicketServiceImpl implements TicketService {
         return ticketQueryService.getTicketsByDepartmentDashboard(departmentName, pageable);
     }
 
+    // This is Redies Changes: Remove ticket from cache when it is updated
     @Override
     @Transactional
+    @CacheEvict(value = "tickets", key = "#id")
     public TicketResponseDTO update(Integer id, TicketRequestDTO requestDTO) {
         Optional<Ticket> ticketOpt = repository.findById(id);
         if (ticketOpt.isEmpty()) {
@@ -146,7 +156,9 @@ public class TicketServiceImpl implements TicketService {
         return ticketMapperService.mapToResponseDTO(updatedTicket);
     }
 
+    // This is Redies Changes: Remove ticket from cache when deleted
     @Override
+    @CacheEvict(value = "tickets", key = "#id")
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Ticket not found with ID: " + id);
@@ -182,4 +194,3 @@ public class TicketServiceImpl implements TicketService {
         return ticketQueryService.getAllTicketsOfEmployee(employeeId);
     }
 }
-
