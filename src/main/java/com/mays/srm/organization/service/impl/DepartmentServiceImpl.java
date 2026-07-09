@@ -10,6 +10,8 @@ import com.mays.srm.organization.service.DepartmentService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @CacheEvict(value = "departments", allEntries = true)
     public DepartmentResponseDTO create(DepartmentRequestDTO requestDTO) {
         try {
             Department department = modelMapper.map(requestDTO, Department.class);
@@ -40,6 +43,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Cacheable(value = "departments", key = "#id")
     public DepartmentResponseDTO getById(Integer id) {
         Optional<Department> departmentOpt = repository.findById(id);
         if (departmentOpt.isPresent()) {
@@ -50,6 +54,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Cacheable(value = "departments", key = "'all'")
     public List<DepartmentResponseDTO> getAll() {
         List<Department> departmentList = repository.findAll();
         List<DepartmentResponseDTO> dtoList = new ArrayList<>();
@@ -60,6 +65,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @CacheEvict(value = "departments", allEntries = true)
     public DepartmentResponseDTO update(Integer id, DepartmentRequestDTO requestDTO) {
         Optional<Department> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -78,6 +84,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @CacheEvict(value = "departments", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Department not found with ID: " + id);

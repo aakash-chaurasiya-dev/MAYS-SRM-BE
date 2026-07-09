@@ -9,6 +9,8 @@ import com.mays.srm.ticket.service.TicketTypeService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     }
 
     @Override
+    @CacheEvict(value = "ticketTypes", allEntries = true)
     public TicketTypeResponseDTO create(TicketTypeRequestDTO requestDTO) {
         try {
             TicketType ticketType = modelMapper.map(requestDTO, TicketType.class);
@@ -39,6 +42,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     }
 
     @Override
+    @Cacheable(value = "ticketTypes", key = "#id")
     public TicketTypeResponseDTO getById(Integer id) {
         Optional<TicketType> ticketTypeOpt = repository.findById(id);
         if (ticketTypeOpt.isPresent()) {
@@ -49,6 +53,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     }
 
     @Override
+    @Cacheable(value = "ticketTypes", key = "'all'")
     public List<TicketTypeResponseDTO> getAll() {
         List<TicketType> ticketTypeList = repository.findAll();
         List<TicketTypeResponseDTO> dtoList = new ArrayList<>();
@@ -59,6 +64,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     }
 
     @Override
+    @CacheEvict(value = "ticketTypes", allEntries = true)
     public TicketTypeResponseDTO update(Integer id, TicketTypeRequestDTO requestDTO) {
         Optional<TicketType> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -77,6 +83,7 @@ public class TicketTypeServiceImpl implements TicketTypeService {
     }
 
     @Override
+    @CacheEvict(value = "ticketTypes", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Ticket Type not found with ID: " + id);

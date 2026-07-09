@@ -25,4 +25,10 @@ public class Device {
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Ticket> tickets;
+
+    @Column(name = "insert_date", insertable = false, updatable = false)
+    private java.time.LocalDateTime insertDate;
+
+    @Column(name = "last_update_date", insertable = false, updatable = false)
+    private java.time.LocalDateTime lastUpdateDate;
 }

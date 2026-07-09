@@ -12,6 +12,8 @@ import com.mays.srm.billing.service.ChargeTypeService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
     }
 
     @Override
+    @CacheEvict(value = "chargeTypes", allEntries = true)
     public ChargeTypeResponseDTO create(ChargeTypeRequestDTO requestDTO) {
         try {
             ChargeType chargeType = modelMapper.map(requestDTO, ChargeType.class);
@@ -42,6 +45,7 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
     }
 
     @Override
+    @Cacheable(value = "chargeTypes", key = "#id")
     public ChargeTypeResponseDTO getById(Integer id) {
         Optional<ChargeType> chargeTypeOpt = repository.findById(id);
         if (chargeTypeOpt.isPresent()) {
@@ -52,6 +56,7 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
     }
 
     @Override
+    @Cacheable(value = "chargeTypes", key = "'all'")
     public List<ChargeTypeResponseDTO> getAll() {
         List<ChargeType> chargeTypeList = repository.findAll();
         List<ChargeTypeResponseDTO> dtoList = new ArrayList<>();
@@ -62,6 +67,7 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
     }
 
     @Override
+    @CacheEvict(value = "chargeTypes", allEntries = true)
     public ChargeTypeResponseDTO update(Integer id, ChargeTypeRequestDTO requestDTO) {
         Optional<ChargeType> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -80,6 +86,7 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
     }
 
     @Override
+    @CacheEvict(value = "chargeTypes", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Charge Type not found with ID: " + id);

@@ -10,6 +10,8 @@ import com.mays.srm.device.service.DeviceTypeService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     }
 
     @Override
+    @CacheEvict(value = "deviceTypes", allEntries = true)
     public DeviceTypeResponseDTO create(DeviceTypeRequestDTO requestDTO) {
         try {
             DeviceType deviceType = modelMapper.map(requestDTO, DeviceType.class);
@@ -40,6 +43,7 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     }
 
     @Override
+    @Cacheable(value = "deviceTypes", key = "#id")
     public DeviceTypeResponseDTO getById(Integer id) {
         Optional<DeviceType> deviceTypeOpt = repository.findById(id);
         if (deviceTypeOpt.isPresent()) {
@@ -50,6 +54,7 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     }
 
     @Override
+    @Cacheable(value = "deviceTypes", key = "'all'")
     public List<DeviceTypeResponseDTO> getAll() {
         List<DeviceType> deviceTypeList = repository.findAll();
         List<DeviceTypeResponseDTO> dtoList = new ArrayList<>();
@@ -60,6 +65,7 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     }
 
     @Override
+    @CacheEvict(value = "deviceTypes", allEntries = true)
     public DeviceTypeResponseDTO update(Integer id, DeviceTypeRequestDTO requestDTO) {
         Optional<DeviceType> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -78,6 +84,7 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     }
 
     @Override
+    @CacheEvict(value = "deviceTypes", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Device Type not found with ID: " + id);

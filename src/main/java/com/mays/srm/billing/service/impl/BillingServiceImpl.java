@@ -1,4 +1,5 @@
 package com.mays.srm.billing.service.impl;
+
 import com.mays.srm.billing.entities.ServiceCharges;
 import com.mays.srm.billing.repository.BillingDao;
 import com.mays.srm.billing.repository.ChargeTypeDao;
@@ -19,8 +20,14 @@ import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.billing.service.BillingService;
+import com.mays.srm.core.dto.PaginatedResponseDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +51,9 @@ public class BillingServiceImpl implements BillingService {
     private final ModelMapper modelMapper;
 
     @Autowired
-    public BillingServiceImpl(BillingDao repository, TicketDao ticketDao, ChargeTypeDao chargeTypeDao, InventoryDao inventoryDao, ServiceChargesDao serviceChargesDao, PaymentModeDetailsDao paymentModeDetailsDao, StatusDao statusDao, ModelMapper modelMapper) {
+    public BillingServiceImpl(BillingDao repository, TicketDao ticketDao, ChargeTypeDao chargeTypeDao,
+            InventoryDao inventoryDao, ServiceChargesDao serviceChargesDao, PaymentModeDetailsDao paymentModeDetailsDao,
+            StatusDao statusDao, ModelMapper modelMapper) {
         this.repository = repository;
         this.ticketDao = ticketDao;
         this.chargeTypeDao = chargeTypeDao;
@@ -57,10 +66,11 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "paginatedFinalCharges", allEntries = true)
     public BillingResponseDTO create(BillingRequestDTO requestDTO) {
         try {
             Billing billing = new Billing();
-            
+
             // Set Billing Date
             billing.setBillingDate(LocalDateTime.now());
 
@@ -101,14 +111,15 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "paginatedFinalCharges", allEntries = true)
     public BillingResponseDTO update(Integer id, BillingRequestDTO requestDTO) {
         Optional<Billing> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Billing record not found with ID: " + id);
         }
-        
+
         Billing existingBilling = existingOpt.get();
-        
+
         validateAndSetRelations(existingBilling, requestDTO);
         calculateAmount(existingBilling, requestDTO);
         existingBilling.setBillingId(id);
@@ -121,6 +132,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @CacheEvict(value = "paginatedFinalCharges", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Billing record not found with ID: " + id);
@@ -143,11 +155,34 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
+    @Cacheable(value = "paginatedFinalCharges", key = "#offset + '-' + #limit")
+    public PaginatedResponseDTO<BillingResponseDTO> getFinalChargesPaginated(int offset, int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        Page<Billing> pageResult = repository.findByChargeTypeChargeName("Final Charge", pageable);
+        
+        List<BillingResponseDTO> content = new ArrayList<>();
+        for (Billing billing : pageResult.getContent()) {
+            content.add(mapToResponseDTO(billing));
+        }
+        
+        return new PaginatedResponseDTO<>(
+                content,
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalElements(),
+                pageResult.getTotalPages(),
+                pageResult.isLast()
+        );
+    }
+
+    @Override
+    @Cacheable(value = "billingTickets", key = "#ticketId")
     public List<BillingResponseDTO> getChargesByTicketId(Integer ticketId) {
         List<Billing> charges = repository.getChargesByTicketId(ticketId);
         List<BillingResponseDTO> result = new ArrayList<>();
         for (Billing billing : charges) {
-            if (billing.getChargeType() != null & !"Final Charge".equalsIgnoreCase(billing.getChargeType().getChargeName())) {
+            if (billing.getChargeType() != null
+                    & !"Final Charge".equalsIgnoreCase(billing.getChargeType().getChargeName())) {
                 result.add(mapToResponseDTO(billing));
             }
         }
@@ -156,11 +191,12 @@ public class BillingServiceImpl implements BillingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"billingTickets", "paginatedFinalCharges"}, allEntries = true)
     public void bulkUpdateCharges(Integer ticketId, List<BillingRequestDTO> charges) {
         List<Billing> existing = repository.getChargesByTicketId(ticketId);
         Billing finalCharge = null;
         List<Billing> nonFinalExisting = new ArrayList<>();
-        
+
         for (Billing b : existing) {
             if (b.getChargeType() != null && "Final Charge".equalsIgnoreCase(b.getChargeType().getChargeName())) {
                 finalCharge = b;
@@ -168,7 +204,7 @@ public class BillingServiceImpl implements BillingService {
                 nonFinalExisting.add(b);
             }
         }
-        
+
         for (Billing existingCharge : nonFinalExisting) {
             boolean found = false;
             for (BillingRequestDTO c : charges) {
@@ -181,14 +217,15 @@ public class BillingServiceImpl implements BillingService {
                 repository.delete(existingCharge);
             }
         }
-        
+
         BigDecimal totalAmount = BigDecimal.ZERO;
-        
+
         for (BillingRequestDTO c : charges) {
             Billing billing;
             if (c.getBillingId() != null) {
                 billing = repository.findById(c.getBillingId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Billing record not found with ID: " + c.getBillingId()));
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Billing record not found with ID: " + c.getBillingId()));
                 c.setTicketId(ticketId);
                 validateAndSetRelations(billing, c);
                 calculateAmount(billing, c);
@@ -205,7 +242,7 @@ public class BillingServiceImpl implements BillingService {
                 totalAmount = totalAmount.add(billing.getAmount());
             }
         }
-        
+
         if (finalCharge != null) {
             finalCharge.setAmount(totalAmount);
             finalCharge.setBillingDate(LocalDateTime.now());
@@ -266,7 +303,8 @@ public class BillingServiceImpl implements BillingService {
                 Optional<Inventory> productOpt = inventoryDao.findById(requestDTO.getProductId());
                 if (productOpt.isPresent()) {
                     billing.setProduct(productOpt.get());
-                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount() : productOpt.get().getSellingPrice());
+                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount()
+                            : productOpt.get().getSellingPrice());
                     billing.setServiceCharge(null);
                 } else {
                     throw new ResourceNotFoundException("Product not found with ID: " + requestDTO.getProductId());
@@ -278,10 +316,12 @@ public class BillingServiceImpl implements BillingService {
                 Optional<ServiceCharges> serviceChargeOpt = serviceChargesDao.findById(requestDTO.getServiceChargeId());
                 if (serviceChargeOpt.isPresent()) {
                     billing.setServiceCharge(serviceChargeOpt.get());
-                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount() : serviceChargeOpt.get().getAmount());
+                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount()
+                            : serviceChargeOpt.get().getAmount());
                     billing.setProduct(null);
                 } else {
-                    throw new ResourceNotFoundException("Service Charge not found with ID: " + requestDTO.getServiceChargeId());
+                    throw new ResourceNotFoundException(
+                            "Service Charge not found with ID: " + requestDTO.getServiceChargeId());
                 }
             } else {
                 if (requestDTO.getAmount() == null || requestDTO.getAmount().compareTo(BigDecimal.ZERO) < 0) {
@@ -296,11 +336,12 @@ public class BillingServiceImpl implements BillingService {
 
     private BillingResponseDTO mapToResponseDTO(Billing billing) {
         BillingResponseDTO dto = modelMapper.map(billing, BillingResponseDTO.class);
-        
+
         if (billing.getTicket() != null) {
             dto.setTicketId(billing.getTicket().getTicketId());
             if (billing.getTicket().getUserMaster() != null) {
-                dto.setCustomerName(billing.getTicket().getUserMaster().getFirstName() + " " + billing.getTicket().getUserMaster().getLastName());
+                dto.setCustomerName(billing.getTicket().getUserMaster().getFirstName() + " "
+                        + billing.getTicket().getUserMaster().getLastName());
             }
         }
         if (billing.getChargeType() != null) {
@@ -323,8 +364,7 @@ public class BillingServiceImpl implements BillingService {
             dto.setStatusId(billing.getStatus().getStatusId());
             dto.setStatusName(billing.getStatus().getStatusName());
         }
-        
+
         return dto;
     }
 }
-

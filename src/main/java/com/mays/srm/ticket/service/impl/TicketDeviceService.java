@@ -9,6 +9,7 @@ import com.mays.srm.device.repository.DeviceModelDao;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -30,6 +31,7 @@ public class TicketDeviceService {
     /**
      * Resolves the device model and device instance for a ticket creation/update
      */
+    @CacheEvict(value = "paginatedDevices", allEntries = true)
     public void handleDeviceCreation(Ticket ticket, TicketRequestDTO requestDTO) {
         if (requestDTO.getDeviceSerialNo() != null) { 
             // 1. Resolve DeviceModel

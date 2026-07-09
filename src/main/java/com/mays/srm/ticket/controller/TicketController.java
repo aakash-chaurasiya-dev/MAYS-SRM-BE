@@ -1,4 +1,5 @@
 package com.mays.srm.ticket.controller;
+
 import com.mays.srm.ticket.repository.TicketAttachmentDao;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.entities.TicketAttachment;
@@ -52,15 +53,16 @@ public class TicketController {
         List<TicketResponseDTO> responseDTOs = ticketService.getAll();
         return ResponseEntity.ok(responseDTOs);
     }
-// --- DashBoard Endpoints ---
+
+    // --- DashBoard Endpoints ---
     @GetMapping("/dashboard")
     public ResponseEntity<Page<TicketDashboardResponseDTO>> getTickets(
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
-        
+
         Pageable pageable = PageRequest.of(offset, limit);
         Page<TicketDashboardResponseDTO> tickets = ticketService.getTicketsForDashboard(pageable);
-        
+
         return ResponseEntity.ok(tickets);
     }
 
@@ -74,12 +76,14 @@ public class TicketController {
             @PathVariable String departmentName,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
-        
+
         Pageable pageable = PageRequest.of(offset, limit);
-        Page<TicketDashboardResponseDTO> tickets = ticketService.getTicketsByDepartmentDashboard(departmentName, pageable);
-        
+        Page<TicketDashboardResponseDTO> tickets = ticketService.getTicketsByDepartmentDashboard(departmentName,
+                pageable);
+
         return ResponseEntity.ok(tickets);
     }
+
     // --- Update and Delete Endpoints ---
     @PatchMapping("/{id}")
     public ResponseEntity<TicketResponseDTO> updateTicket(@PathVariable Integer id,
@@ -152,4 +156,3 @@ public class TicketController {
         return ResponseEntity.ok(attachments);
     }
 }
-

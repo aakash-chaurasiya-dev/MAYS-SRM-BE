@@ -2,6 +2,7 @@ package com.mays.srm.ticket.service;
 
 import com.mays.srm.ticket.dto.request.TicketAccessoriesRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketAccessoriesResponseDTO;
+import com.mays.srm.ticket.entities.Ticket;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface TicketAccessoriesService {
     List<TicketAccessoriesResponseDTO> getByTicketId(Integer ticketId);
     List<TicketAccessoriesResponseDTO> bulkCreate(List<TicketAccessoriesRequestDTO> requests);
     List<TicketAccessoriesResponseDTO> bulkUpdate(List<TicketAccessoriesRequestDTO> requests);
+    void syncAccessories(Ticket ticket, List<Integer> accessoryIds);
 }

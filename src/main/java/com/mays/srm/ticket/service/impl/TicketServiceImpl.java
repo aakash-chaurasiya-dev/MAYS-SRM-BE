@@ -8,6 +8,7 @@ import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
+import com.mays.srm.ticket.service.TicketAccessoriesService;
 import com.mays.srm.ticket.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -34,6 +35,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketValidationService ticketValidationService;
     private final TicketAuditService ticketAuditService;
     private final TicketBillingService ticketBillingService;
+    private final TicketAccessoriesService ticketAccessoriesService;
 
     @Autowired
     public TicketServiceImpl(TicketDao repository,
@@ -42,7 +44,8 @@ public class TicketServiceImpl implements TicketService {
             TicketDeviceService ticketDeviceService,
             TicketValidationService ticketValidationService,
             TicketAuditService ticketAuditService,
-            TicketBillingService ticketBillingService) {
+            TicketBillingService ticketBillingService,
+            TicketAccessoriesService ticketAccessoriesService) {
         this.repository = repository;
         this.ticketQueryService = ticketQueryService;
         this.ticketMapperService = ticketMapperService;
@@ -50,6 +53,7 @@ public class TicketServiceImpl implements TicketService {
         this.ticketValidationService = ticketValidationService;
         this.ticketAuditService = ticketAuditService;
         this.ticketBillingService = ticketBillingService;
+        this.ticketAccessoriesService = ticketAccessoriesService;
     }
 
     @Override
@@ -80,6 +84,10 @@ public class TicketServiceImpl implements TicketService {
 
             Ticket savedTicket = repository.save(ticket);
             ticketBillingService.ensureFinalChargeExists(savedTicket);
+
+            if (requestDTO.getAccessoryIds() != null) {
+                ticketAccessoriesService.syncAccessories(savedTicket, requestDTO.getAccessoryIds());
+            }
 
             return ticketMapperService.mapToResponseDTO(savedTicket);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
@@ -153,6 +161,10 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket updatedTicket = repository.save(ticket);
         ticketBillingService.ensureFinalChargeExists(updatedTicket);
+
+        if (requestDTO.getAccessoryIds() != null) {
+            ticketAccessoriesService.syncAccessories(updatedTicket, requestDTO.getAccessoryIds());
+        }
         return ticketMapperService.mapToResponseDTO(updatedTicket);
     }
 

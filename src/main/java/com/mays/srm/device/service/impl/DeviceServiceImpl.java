@@ -1,4 +1,5 @@
 package com.mays.srm.device.service.impl;
+
 import com.mays.srm.device.dto.request.DeviceRequestDTO;
 import com.mays.srm.device.dto.resDTO.DeviceResponseDTO;
 import com.mays.srm.device.entities.Device;
@@ -8,9 +9,13 @@ import com.mays.srm.device.repository.DeviceModelDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.device.service.DeviceService;
+import com.mays.srm.util.RestPageImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -35,7 +40,7 @@ public class DeviceServiceImpl implements DeviceService {
     public DeviceResponseDTO create(DeviceRequestDTO requestDTO) {
         try {
             Device device = modelMapper.map(requestDTO, Device.class);
-            
+
             if (requestDTO.getModelId() != null) {
                 Optional<DeviceModel> modelOpt = deviceModelDao.findById(requestDTO.getModelId());
                 if (modelOpt.isPresent()) {
@@ -75,15 +80,30 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    @Cacheable(value = "paginatedDevices", key = "#pageable.pageNumber + '-' + #pageable.pageSize")
+    public Page<DeviceResponseDTO> getPaginated(Pageable pageable) {
+        // Fetch the paginated entities from the database
+        Page<Device> devicePage = repository.findAll(pageable);
+        
+        // Convert each Device entity into a DeviceResponseDTO
+        List<DeviceResponseDTO> dtoList = devicePage.stream().map(device -> {
+            DeviceResponseDTO dto = mapToResponseDTO(device);
+            return dto;
+        }).toList();
+        
+        return new RestPageImpl<>(dtoList, pageable, devicePage.getTotalElements());
+    }
+
+    @Override
     public DeviceResponseDTO update(String id, DeviceRequestDTO requestDTO) {
         Optional<Device> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Device not found with Serial No: " + id);
         }
-        
+
         Device existingDevice = existingOpt.get();
         modelMapper.map(requestDTO, existingDevice);
-        
+
         // Ensure ID is not changed during update
         existingDevice.setSerialNo(id);
 
@@ -97,7 +117,7 @@ public class DeviceServiceImpl implements DeviceService {
         } else {
             existingDevice.setModel(null);
         }
-        
+
         try {
             Device updatedDevice = repository.save(existingDevice);
             return mapToResponseDTO(updatedDevice);
@@ -114,7 +134,8 @@ public class DeviceServiceImpl implements DeviceService {
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException("Cannot delete Device because it is currently linked to tickets.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Device because it is currently linked to tickets.",
+                    ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Device with Serial No: " + id, ex);
         }
@@ -126,6 +147,9 @@ public class DeviceServiceImpl implements DeviceService {
             dto.setModelName(device.getModel().getModelName());
             if (device.getModel().getBrand() != null) {
                 dto.setBrandName(device.getModel().getBrand().getBrandName());
+                if (device.getModel().getBrand().getDeviceType() != null) {
+                    dto.setDeviceTypeName(device.getModel().getBrand().getDeviceType().getDeviceTypeName());
+                }
             }
         }
         return dto;
