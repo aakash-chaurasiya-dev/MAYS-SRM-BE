@@ -11,6 +11,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,7 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
 
     @Override
     @Transactional
+    @CacheEvict(value = "deviceAccessories", allEntries = true)
     public DeviceAccessoryMasterResponseDTO create(DeviceAccessoryMasterRequestDTO requestDTO) {
         DeviceType deviceType = deviceTypeDao.findById(requestDTO.getDeviceTypeId())
                 .orElseThrow(() -> new RuntimeException("DeviceType not found with id: " + requestDTO.getDeviceTypeId()));
@@ -48,6 +51,7 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
     }
 
     @Override
+    @Cacheable(value = "deviceAccessories", key = "'all'")
     public List<DeviceAccessoryMasterResponseDTO> getAll() {
         return dao.findAll().stream()
                 .map(this::mapToResponse)
@@ -55,6 +59,7 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
     }
 
     @Override
+    @Cacheable(value = "deviceAccessories", key = "'deviceType-' + #deviceTypeId")
     public List<DeviceAccessoryMasterResponseDTO> getByDeviceTypeId(Integer deviceTypeId) {
         return dao.findByDeviceType_DeviceTypeId(deviceTypeId).stream()
                 .map(this::mapToResponse)
@@ -63,6 +68,7 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
 
     @Override
     @Transactional
+    @CacheEvict(value = "deviceAccessories", allEntries = true)
     public DeviceAccessoryMasterResponseDTO update(Integer id, DeviceAccessoryMasterRequestDTO requestDTO) {
         DeviceAccessoryMaster entity = dao.findById(id)
                 .orElseThrow(() -> new RuntimeException("DeviceAccessoryMaster not found with id: " + id));
@@ -82,6 +88,7 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
 
     @Override
     @Transactional
+    @CacheEvict(value = "deviceAccessories", allEntries = true)
     public void delete(Integer id) {
         DeviceAccessoryMaster entity = dao.findById(id)
                 .orElseThrow(() -> new RuntimeException("DeviceAccessoryMaster not found with id: " + id));

@@ -9,6 +9,8 @@ import com.mays.srm.organization.service.StatusService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    @CacheEvict(value = "statuses", allEntries = true)
     public StatusResponseDTO create(StatusRequestDTO requestDTO) {
         try {
             Status status = modelMapper.map(requestDTO, Status.class);
@@ -40,6 +43,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    @Cacheable(value = "statuses", key = "#id")
     public StatusResponseDTO getById(Integer id) {
         Optional<Status> statusOpt = repository.findById(id);
         if (statusOpt.isPresent()) {
@@ -50,6 +54,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    @Cacheable(value = "statuses", key = "'all'")
     public List<StatusResponseDTO> getAll() {
         List<Status> statusList = repository.findAll();
         List<StatusResponseDTO> dtoList = new ArrayList<>();
@@ -60,6 +65,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    @CacheEvict(value = "statuses", allEntries = true)
     public StatusResponseDTO update(Integer id, StatusRequestDTO requestDTO) {
         Optional<Status> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -78,6 +84,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    @CacheEvict(value = "statuses", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Status not found with ID: " + id);
@@ -92,6 +99,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
+    @Cacheable(value = "statuses", key = "'type-' + #statusType")
     public List<StatusResponseDTO> getStatusesByType(String statusType) {
         List<Status> statuses = repository.getStatusesByType(statusType);
         List<StatusResponseDTO> dtoList = new java.util.ArrayList<>();

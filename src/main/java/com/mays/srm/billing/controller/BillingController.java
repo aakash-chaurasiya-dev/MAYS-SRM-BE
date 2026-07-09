@@ -5,6 +5,7 @@ import com.mays.srm.billing.service.BillingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.mays.srm.core.dto.PaginatedResponseDTO;
 
 import java.util.List;
 
@@ -36,6 +37,14 @@ public class BillingController {
     @GetMapping("/final-charges")
     public ResponseEntity<List<BillingResponseDTO>> getFinalCharges() {
         List<BillingResponseDTO> responseDTOs = billingService.getFinalCharges();
+        return ResponseEntity.ok(responseDTOs);
+    }
+
+    @GetMapping("/final-charges/paginated")
+    public ResponseEntity<PaginatedResponseDTO<BillingResponseDTO>> getFinalChargesPaginated(
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
+        PaginatedResponseDTO<BillingResponseDTO> responseDTOs = billingService.getFinalChargesPaginated(offset, limit);
         return ResponseEntity.ok(responseDTOs);
     }
 

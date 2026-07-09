@@ -7,4 +7,5 @@ public class BrandResponseDTO {
     private String brandName;
     private String brandDescription;
     private String deviceTypeName; // For context
+    private Integer deviceTypeId; // For context
 }

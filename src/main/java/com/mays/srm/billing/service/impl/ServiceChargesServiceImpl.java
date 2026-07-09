@@ -12,6 +12,8 @@ import com.mays.srm.billing.service.ServiceChargesService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
     }
 
     @Override
+    @CacheEvict(value = "serviceCharges", allEntries = true)
     public ServiceChargesResponseDTO create(ServiceChargesRequestDTO requestDTO) {
         try {
             ServiceCharges serviceCharge = modelMapper.map(requestDTO, ServiceCharges.class);
@@ -48,6 +51,7 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
     }
 
     @Override
+    @Cacheable(value = "serviceCharges", key = "#id")
     public ServiceChargesResponseDTO getById(Integer id) {
         Optional<ServiceCharges> chargeOpt = repository.findById(id);
         if (chargeOpt.isPresent()) {
@@ -58,6 +62,7 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
     }
 
     @Override
+    @Cacheable(value = "serviceCharges", key = "'all'")
     public List<ServiceChargesResponseDTO> getAll() {
         List<ServiceCharges> chargeList = repository.findAll();
         List<ServiceChargesResponseDTO> dtoList = new ArrayList<>();
@@ -68,6 +73,7 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
     }
 
     @Override
+    @CacheEvict(value = "serviceCharges", allEntries = true)
     public ServiceChargesResponseDTO update(Integer id, ServiceChargesRequestDTO requestDTO) {
         Optional<ServiceCharges> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -90,6 +96,7 @@ public class ServiceChargesServiceImpl implements ServiceChargesService {
     }
 
     @Override
+    @CacheEvict(value = "serviceCharges", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Service Charge not found with ID: " + id);

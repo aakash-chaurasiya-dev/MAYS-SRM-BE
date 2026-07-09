@@ -7,4 +7,6 @@ public class DeviceModelResponseDTO {
     private String modelName;
     private String modelDescription;
     private String brandName; // For context
+    private Integer deviceTypeId; // For context
+    private String deviceTypeName; // For context
 }

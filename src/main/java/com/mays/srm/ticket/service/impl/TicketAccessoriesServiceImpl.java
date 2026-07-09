@@ -105,6 +105,45 @@ public class TicketAccessoriesServiceImpl implements TicketAccessoriesService {
         dao.delete(entity);
     }
 
+    @Override
+    @Transactional
+    public void syncAccessories(com.mays.srm.ticket.entities.Ticket ticket, List<Integer> accessoryIds) {
+        List<TicketAccessories> existingAccessories = dao.findByTicket_TicketId(ticket.getTicketId());
+
+        if (accessoryIds == null || accessoryIds.isEmpty()) {
+            dao.deleteAll(existingAccessories);
+            return;
+        }
+
+        // Delete those not in the new list
+        List<TicketAccessories> toDelete = existingAccessories.stream()
+                .filter(acc -> !accessoryIds.contains(acc.getAccessory().getAccessoryId()))
+                .collect(Collectors.toList());
+        dao.deleteAll(toDelete);
+
+        // Find existing accessory IDs to avoid duplicates
+        List<Integer> existingIds = existingAccessories.stream()
+                .map(acc -> acc.getAccessory().getAccessoryId())
+                .collect(Collectors.toList());
+
+        // Create new ones
+        List<TicketAccessories> toCreate = accessoryIds.stream()
+                .filter(id -> !existingIds.contains(id))
+                .map(id -> {
+                    DeviceAccessoryMaster accessory = accessoryDao.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Accessory not found with id: " + id));
+                    TicketAccessories entity = new TicketAccessories();
+                    entity.setTicket(ticket);
+                    entity.setAccessory(accessory);
+                    return entity;
+                })
+                .collect(Collectors.toList());
+        
+        if (!toCreate.isEmpty()) {
+            dao.saveAll(toCreate);
+        }
+    }
+
     private TicketAccessoriesResponseDTO mapToResponse(TicketAccessories entity) {
         TicketAccessoriesResponseDTO responseDTO = modelMapper.map(entity, TicketAccessoriesResponseDTO.class);
         if (entity.getTicket() != null) {

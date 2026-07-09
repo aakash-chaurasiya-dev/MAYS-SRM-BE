@@ -9,6 +9,8 @@ import com.mays.srm.organization.service.BranchService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +29,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = "branches", allEntries = true)
     public BranchResponseDTO create(BranchRequestDTO requestDTO) {
         try {
             Branch branch = modelMapper.map(requestDTO, Branch.class);
@@ -40,6 +43,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Cacheable(value = "branches", key = "#id")
     public BranchResponseDTO getById(Integer id) {
         Branch branch = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Branch not found with ID: " + id));
@@ -47,6 +51,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @Cacheable(value = "branches", key = "'all'")
     public List<BranchResponseDTO> getAll() {
         return repository.findAll().stream()
                 .map(branch -> modelMapper.map(branch, BranchResponseDTO.class))
@@ -54,6 +59,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = "branches", allEntries = true)
     public BranchResponseDTO update(Integer id, BranchRequestDTO requestDTO) {
         Branch existingBranch = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cannot update. Branch not found with ID: " + id));
@@ -70,6 +76,7 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
+    @CacheEvict(value = "branches", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Branch not found with ID: " + id);

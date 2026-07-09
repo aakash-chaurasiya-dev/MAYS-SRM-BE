@@ -12,6 +12,8 @@ import com.mays.srm.device.service.DeviceModelService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     }
 
     @Override
+    @CacheEvict(value = "deviceModels", allEntries = true)
     public DeviceModelResponseDTO create(DeviceModelRequestDTO requestDTO) {
         try {
             DeviceModel deviceModel = modelMapper.map(requestDTO, DeviceModel.class);
@@ -56,6 +59,7 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     }
 
     @Override
+    @Cacheable(value = "deviceModels", key = "#id")
     public DeviceModelResponseDTO getById(Integer id) {
         Optional<DeviceModel> deviceModelOpt = repository.findById(id);
         if (deviceModelOpt.isPresent()) {
@@ -66,6 +70,7 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     }
 
     @Override
+    @Cacheable(value = "deviceModels", key = "'all'")
     public List<DeviceModelResponseDTO> getAll() {
         List<DeviceModel> deviceModelList = repository.findAll();
         List<DeviceModelResponseDTO> dtoList = new ArrayList<>();
@@ -76,6 +81,7 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     }
 
     @Override
+    @CacheEvict(value = "deviceModels", allEntries = true)
     public DeviceModelResponseDTO update(Integer id, DeviceModelRequestDTO requestDTO) {
         Optional<DeviceModel> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -105,6 +111,7 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     }
 
     @Override
+    @CacheEvict(value = "deviceModels", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Device Model not found with ID: " + id);
@@ -122,6 +129,10 @@ public class DeviceModelServiceImpl implements DeviceModelService {
         DeviceModelResponseDTO dto = modelMapper.map(deviceModel, DeviceModelResponseDTO.class);
         if (deviceModel.getBrand() != null) {
             dto.setBrandName(deviceModel.getBrand().getBrandName());
+            if (deviceModel.getBrand().getDeviceType() != null) {
+                dto.setDeviceTypeId(deviceModel.getBrand().getDeviceType().getDeviceTypeId());
+                dto.setDeviceTypeName(deviceModel.getBrand().getDeviceType().getDeviceTypeName());
+            }
         }
         return dto;
     }

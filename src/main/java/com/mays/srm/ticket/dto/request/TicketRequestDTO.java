@@ -3,6 +3,7 @@ import com.mays.srm.device.entities.Device;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class TicketRequestDTO {
@@ -23,4 +24,7 @@ public class TicketRequestDTO {
     private Integer deviceModelId;
     private String customModelName;
     private Integer brandId;
+
+    // Optional field for syncing accessories with the ticket
+    private List<Integer> accessoryIds;
 }

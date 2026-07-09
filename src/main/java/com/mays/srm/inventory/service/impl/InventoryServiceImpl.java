@@ -14,6 +14,8 @@ import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.inventory.service.InventoryService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @CacheEvict(value = "inventory", allEntries = true)
     public InventoryResponseDTO create(InventoryRequestDTO requestDTO) {
         try {
             Inventory inventory = modelMapper.map(requestDTO, Inventory.class);
@@ -63,6 +66,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Cacheable(value = "inventory")
     public List<InventoryResponseDTO> getAll() {
         List<Inventory> inventoryList = repository.findAll();
         List<InventoryResponseDTO> dtoList = new ArrayList<>();
@@ -73,6 +77,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @CacheEvict(value = "inventory", allEntries = true)
     public InventoryResponseDTO update(Integer id, InventoryRequestDTO requestDTO) {
         Optional<Inventory> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -96,6 +101,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @CacheEvict(value = "inventory", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Inventory record not found with ID: " + id);

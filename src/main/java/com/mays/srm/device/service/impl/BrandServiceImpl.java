@@ -12,6 +12,8 @@ import com.mays.srm.device.service.BrandService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @CacheEvict(value = "brands", allEntries = true)
     public BrandResponseDTO create(BrandRequestDTO requestDTO) {
         try {
             Brand brand = modelMapper.map(requestDTO, Brand.class);
@@ -56,6 +59,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @Cacheable(value = "brands", key = "#id")
     public BrandResponseDTO getById(Integer id) {
         Optional<Brand> brandOpt = repository.findById(id);
         if (brandOpt.isPresent()) {
@@ -66,6 +70,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @Cacheable(value = "brands", key = "'all'")
     public List<BrandResponseDTO> getAll() {
         List<Brand> brandList = repository.findAll();
         List<BrandResponseDTO> dtoList = new ArrayList<>();
@@ -76,6 +81,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @CacheEvict(value = "brands", allEntries = true)
     public BrandResponseDTO update(Integer id, BrandRequestDTO requestDTO) {
         Optional<Brand> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -105,6 +111,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    @CacheEvict(value = "brands", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Brand not found with ID: " + id);
@@ -121,6 +128,7 @@ public class BrandServiceImpl implements BrandService {
     private BrandResponseDTO mapToResponseDTO(Brand brand) {
         BrandResponseDTO dto = modelMapper.map(brand, BrandResponseDTO.class);
         if (brand.getDeviceType() != null) {
+            dto.setDeviceTypeId(brand.getDeviceType().getDeviceTypeId());
             dto.setDeviceTypeName(brand.getDeviceType().getDeviceTypeName());
         }
         return dto;
