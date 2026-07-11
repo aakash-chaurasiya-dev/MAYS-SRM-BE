@@ -10,6 +10,9 @@ import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.ticket.service.TicketAccessoriesService;
 import com.mays.srm.ticket.service.TicketService;
+import com.mays.srm.ticket.service.TicketTimeTrackingService;
+import com.mays.srm.organization.entities.Status;
+import com.mays.srm.user.entities.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -36,6 +39,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketAuditService ticketAuditService;
     private final TicketBillingService ticketBillingService;
     private final TicketAccessoriesService ticketAccessoriesService;
+    private final TicketTimeTrackingService ticketTimeTrackingService;
 
     @Autowired
     public TicketServiceImpl(TicketDao repository,
@@ -45,7 +49,8 @@ public class TicketServiceImpl implements TicketService {
             TicketValidationService ticketValidationService,
             TicketAuditService ticketAuditService,
             TicketBillingService ticketBillingService,
-            TicketAccessoriesService ticketAccessoriesService) {
+            TicketAccessoriesService ticketAccessoriesService,
+            TicketTimeTrackingService ticketTimeTrackingService) {
         this.repository = repository;
         this.ticketQueryService = ticketQueryService;
         this.ticketMapperService = ticketMapperService;
@@ -54,6 +59,7 @@ public class TicketServiceImpl implements TicketService {
         this.ticketAuditService = ticketAuditService;
         this.ticketBillingService = ticketBillingService;
         this.ticketAccessoriesService = ticketAccessoriesService;
+        this.ticketTimeTrackingService = ticketTimeTrackingService;
     }
 
     @Override
@@ -81,9 +87,18 @@ public class TicketServiceImpl implements TicketService {
             if (requestDTO.getPriority() != null) {
                 ticket.setPriority(requestDTO.getPriority());
             }
+            if (requestDTO.getTargetDate() != null) {
+                ticket.setTargetDate(requestDTO.getTargetDate());
+            }
+            if (requestDTO.getClosedDate() != null) {
+                ticket.setClosedDate(requestDTO.getClosedDate());
+            }
 
             Ticket savedTicket = repository.save(ticket);
             ticketBillingService.ensureFinalChargeExists(savedTicket);
+
+            // Handle Time Tracking for new ticket
+            ticketTimeTrackingService.startTrackingForNewTicket(savedTicket);
 
             if (requestDTO.getAccessoryIds() != null) {
                 ticketAccessoriesService.syncAccessories(savedTicket, requestDTO.getAccessoryIds());
@@ -136,6 +151,10 @@ public class TicketServiceImpl implements TicketService {
         }
         Ticket ticket = ticketOpt.get();
 
+        // Capture old status and old assignee for time tracking before they are overwritten
+        Status oldStatus = ticket.getTicketStatus();
+        Employee oldAssignee = ticket.getEmployee();
+
         // 1. Audit Logging Logic
         ticketAuditService.logChanges(ticket, requestDTO);
 
@@ -154,6 +173,12 @@ public class TicketServiceImpl implements TicketService {
         if (requestDTO.getWarrantyType() != null) {
             ticket.setWarrantyType(requestDTO.getWarrantyType());
         }
+        if (requestDTO.getTargetDate() != null) {
+            ticket.setTargetDate(requestDTO.getTargetDate());
+        }
+        if (requestDTO.getClosedDate() != null) {
+            ticket.setClosedDate(requestDTO.getClosedDate());
+        }
 
         // Re-validate and set complex relations if they were provided
         ticketValidationService.validateAndSetRelations(ticket, requestDTO);
@@ -161,6 +186,10 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket updatedTicket = repository.save(ticket);
         ticketBillingService.ensureFinalChargeExists(updatedTicket);
+
+        // Handle Time Tracking updates
+        System.out.println("are we coming here 009");
+        ticketTimeTrackingService.handleTrackingUpdates(updatedTicket, oldStatus, oldAssignee);
 
         if (requestDTO.getAccessoryIds() != null) {
             ticketAccessoriesService.syncAccessories(updatedTicket, requestDTO.getAccessoryIds());

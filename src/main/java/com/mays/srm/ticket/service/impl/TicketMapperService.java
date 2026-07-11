@@ -38,9 +38,14 @@ public class TicketMapperService {
             dto.setDeviceSerialNo(ticket.getDevice().getSerialNo());
             if (ticket.getDevice().getModel() != null) {
                 dto.setDeviceModelName(ticket.getDevice().getModel().getModelName());
+                dto.setDeviceModelId(ticket.getDevice().getModel().getModelId());
                 if (ticket.getDevice().getModel().getBrand() != null) {
                     dto.setDeviceBrandName(ticket.getDevice().getModel().getBrand().getBrandName());
-                    dto.setDeviceTypeName(ticket.getDevice().getModel().getBrand().getDeviceType().getDeviceTypeName());
+                    dto.setDeviceBrandId(ticket.getDevice().getModel().getBrand().getBrandId());
+                    if (ticket.getDevice().getModel().getBrand().getDeviceType() != null) {
+                        dto.setDeviceTypeName(ticket.getDevice().getModel().getBrand().getDeviceType().getDeviceTypeName());
+                        dto.setDeviceTypeId(ticket.getDevice().getModel().getBrand().getDeviceType().getDeviceTypeId());
+                    }
                 } else {
                     dto.setDeviceBrandName("N/A");
                     dto.setDeviceTypeName("N/A");
@@ -50,6 +55,7 @@ public class TicketMapperService {
 
         if (ticket.getTicketBranch() != null) {
             dto.setBranchName(ticket.getTicketBranch().getBranchName());
+            dto.setBranchId(ticket.getTicketBranch().getBranchId());
         }
         if (ticket.getEmployee() != null) {
             dto.setEmployeeId(ticket.getEmployee().getEmployeeId());

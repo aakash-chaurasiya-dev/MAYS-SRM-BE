@@ -79,6 +79,8 @@ public class TicketAuditService {
         checkChange("ticketDescription", ticket.getTicketDescription(), requestDTO.getTicketDescription(), changes);
         checkChange("emailId", ticket.getEmailId(), requestDTO.getEmailId(), changes);
         checkChange("warrantyType", ticket.getWarrantyType(), requestDTO.getWarrantyType(), changes);
+        checkChange("targetDate", ticket.getTargetDate(), requestDTO.getTargetDate(), changes);
+        checkChange("closedDate", ticket.getClosedDate(), requestDTO.getClosedDate(), changes);
         
         if (requestDTO.getTicketBranchId() != null) {
             Integer oldBranchId = ticket.getTicketBranch() != null ? ticket.getTicketBranch().getBranchId() : null;

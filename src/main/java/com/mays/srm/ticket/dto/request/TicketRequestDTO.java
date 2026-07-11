@@ -1,9 +1,8 @@
 package com.mays.srm.ticket.dto.request;
-import com.mays.srm.device.entities.Device;
-import com.mays.srm.user.entities.Employee;
-import com.mays.srm.user.entities.UserMaster;
+
 import lombok.Data;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
 public class TicketRequestDTO {
@@ -19,6 +18,8 @@ public class TicketRequestDTO {
     private String priority;
     private String remarks; // Added for logging purposes during updates
     private Integer modifiedByEmployeeId; // Employee making the update
+    private LocalDateTime targetDate;
+    private LocalDateTime closedDate;
 
     // Optional field for creating a new device along with the ticket
     private Integer deviceModelId;
