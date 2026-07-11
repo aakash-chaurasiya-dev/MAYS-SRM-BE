@@ -14,6 +14,8 @@ public class TicketDashboardResponseDTO {
     private String departmentName; // Added field
     private LocalDateTime createdDate;
     private LocalDateTime targetDate;
+    private Integer employeeId;
+    private String employeeName;
 
     // Required by JPA and some serialization
     public TicketDashboardResponseDTO() {
@@ -23,7 +25,8 @@ public class TicketDashboardResponseDTO {
     // to this DTO
     public TicketDashboardResponseDTO(Integer ticketId, String userFirstName, String userLastName,
             String deviceSerialNo, String branchName, String ticketStatusName,
-            String departmentName, LocalDateTime createdDate, LocalDateTime targetDate) {
+            String departmentName, LocalDateTime createdDate, LocalDateTime targetDate, 
+            Integer employeeId, String employeeName) {
         this.ticketId = ticketId;
         this.userFirstName = userFirstName != null ? userFirstName : "N/A";
         this.userLastName = userLastName != null ? userLastName : "";
@@ -33,6 +36,8 @@ public class TicketDashboardResponseDTO {
         this.departmentName = departmentName != null ? departmentName : "N/A";
         this.createdDate = createdDate;
         this.targetDate = targetDate;
+        this.employeeId = employeeId;
+        this.employeeName = employeeName != null ? employeeName : "Unassigned";
 
     }
 }

@@ -31,7 +31,7 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
         // 2. Returns fully typed DTOs (no Object[] array bleeding).
         // 3. No MapperService dependency inside the DAO.
         String queryString = "SELECT new com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO(" +
-                "t.ticketId, u.firstName, u.lastName, d.serialNo, b.branchName, s.statusName, dept.departmentName, t.createdDate, t.targetDate) "
+                "t.ticketId, u.firstName, u.lastName, d.serialNo, b.branchName, s.statusName, dept.departmentName, t.createdDate, t.targetDate, e.employeeId, e.employeeName) "
                 +
                 "FROM Ticket t " +
                 "LEFT JOIN t.userMaster u " +
@@ -82,7 +82,7 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
     @Override
     public Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable) {
         String baseQuery = "SELECT new com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO(" +
-                "t.ticketId, u.firstName, u.lastName, d.serialNo, b.branchName, s.statusName, dept.departmentName, t.createdDate) " +
+                "t.ticketId, u.firstName, u.lastName, d.serialNo, b.branchName, s.statusName, dept.departmentName, t.createdDate, t.targetDate, e.employeeId, e.employeeName) " +
                 "FROM Ticket t " +
                 "LEFT JOIN t.userMaster u " +
                 "LEFT JOIN t.device d " +
