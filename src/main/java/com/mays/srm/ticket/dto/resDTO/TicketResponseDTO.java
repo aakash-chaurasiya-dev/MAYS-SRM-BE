@@ -18,8 +18,14 @@ public class TicketResponseDTO {
     private String deviceBrandName;
     private String ticketDescription;
     private String branchName;
+    private Integer branchId;
     private Integer employeeId; // Added field
     private String employeeName;
+    private LocalDateTime targetDate;
+    private LocalDateTime closedDate;
+    private Integer deviceModelId;
+    private Integer deviceTypeId;
+    private Integer deviceBrandId;
     private Integer departmentId; // Added field
     private String departmentName; // Added field
     private String warrantyType;

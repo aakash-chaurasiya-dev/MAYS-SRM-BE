@@ -59,6 +59,12 @@ public class Ticket {
     @Column(name = "priority", length = 20)
     private String priority;
 
+    @Column(name = "target_date")
+    private LocalDateTime targetDate;
+
+    @Column(name = "closed_date")
+    private LocalDateTime closedDate;
+
     @CreationTimestamp
     @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
