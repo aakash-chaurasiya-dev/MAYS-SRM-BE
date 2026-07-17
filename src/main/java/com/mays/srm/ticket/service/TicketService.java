@@ -4,6 +4,7 @@ import com.mays.srm.core.service.GenericService;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,4 +18,5 @@ public interface TicketService extends GenericService<TicketRequestDTO, TicketRe
     Page<TicketDashboardResponseDTO> getTicketsForDashboard(Pageable pageable);
     TicketDashboardTicketStatsResponseDTO getDashboardTicketStats();
     Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable);
+    List<TicketUserDashboardResponseDTO> getLightweightTicketsByUserId(Integer userId);
 }

@@ -8,6 +8,7 @@ public class TicketResponseDTO {
     private String userFirstName;
     private String userLastName;
     private String userMobileNo;
+    private Integer userId; // Added field to map the customer user ID
     private String ticketTypeName;
     private Integer ticketStatusId; // Added field
     private String ticketStatusName;

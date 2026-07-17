@@ -1,4 +1,5 @@
-package com.mays.srm.security;
+package com.mays.srm.security.service;
+import com.mays.srm.security.core.*;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
 import com.mays.srm.user.repository.EmployeeDao;
@@ -23,6 +24,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private EmployeeDao employeeDao; // The Employee database
 
+    @Autowired
+    private SecurityProfileService securityProfileService;
+
     // This is the ONE method Spring calls during login to find the user
     @Override
     public UserDetails loadUserByUsername(String mobileNo) throws UsernameNotFoundException {
@@ -31,17 +35,26 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<Employee> employeeOpt = employeeDao.findByMobileNo(mobileNo);
         if (employeeOpt.isPresent()) {
             Employee emp = employeeOpt.get(); // We found an employee!
+            // Get their security profile
+            com.mays.srm.security.entities.SecurityProfile profile = securityProfileService.getOrCreateProfileForEmployee(emp);
+            boolean isLocked = securityProfileService.isAccountLocked(profile);
+            
             // We convert the Employee into our CustomUserDetails (The Passport)
-            return new CustomUserDetails(emp.getMobileNo(), emp.getPassword(), emp.getRole(), emp.getIsActive(), emp.getEmployeeName(), emp.getEmployeeId());
+            return new CustomUserDetails(emp.getMobileNo(), emp.getPassword(), emp.getRole(), emp.getIsActive(), emp.getEmployeeName(), emp.getEmployeeId(), !isLocked, profile.getFirstTimeLogin());
         }
 
         // 2. If it wasn't an employee, ask the User table: "Do you have this mobile number?"
         Optional<UserMaster> userOpt = userMasterDao.findByMobileNo(mobileNo);
         if (userOpt.isPresent()) {
             UserMaster user = userOpt.get(); // We found a normal user!
+            
+            // Get their security profile
+            com.mays.srm.security.entities.SecurityProfile profile = securityProfileService.getOrCreateProfileForUser(user);
+            boolean isLocked = securityProfileService.isAccountLocked(profile);
+
             // We convert the User into our CustomUserDetails (The Passport)
             String fullName = user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : "");
-            return new CustomUserDetails(user.getMobileNo(), user.getPassword(), user.getRole(), user.getIsActive(), fullName, user.getUserId());
+            return new CustomUserDetails(user.getMobileNo(), user.getPassword(), user.getRole(), user.getIsActive(), fullName, user.getUserId(), !isLocked, profile.getFirstTimeLogin());
         }
 
         // 3. We didn't find anyone in either table! Deny login.

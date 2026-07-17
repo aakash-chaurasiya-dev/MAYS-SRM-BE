@@ -56,6 +56,14 @@ public class UserMasterServiceImpl implements UserMasterService {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
             }
 
+            if (user.getIsActive() == null) {
+                user.setIsActive(true);
+            }
+            
+            if (user.getRole() == null) {
+                user.setRole("USER");
+            }
+
             UserMaster savedUser = repository.save(user);
             return mapToResponseDTO(savedUser);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {

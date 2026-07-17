@@ -6,6 +6,7 @@ import com.mays.srm.ticket.entities.TicketAttachment;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 
 import org.springframework.data.domain.Page;
@@ -103,6 +104,11 @@ public class TicketController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TicketResponseDTO>> getAllTicketsOfUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(ticketService.getAllTicketsOfUser(userId));
+    }
+
+    @GetMapping("/user/dashboard/{userId}")
+    public ResponseEntity<List<TicketUserDashboardResponseDTO>> getLightweightTicketsByUserId(@PathVariable Integer userId) {
+        return ResponseEntity.ok(ticketService.getLightweightTicketsByUserId(userId));
     }
 
     @GetMapping("/branch/{branchId}")
