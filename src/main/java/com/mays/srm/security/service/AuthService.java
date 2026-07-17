@@ -1,4 +1,4 @@
-package com.mays.srm.security;
+package com.mays.srm.security.service;
 
 import com.mays.srm.user.dto.request.EmployeeRequestDTO;
 import com.mays.srm.user.dto.request.UserMasterRequestDTO;

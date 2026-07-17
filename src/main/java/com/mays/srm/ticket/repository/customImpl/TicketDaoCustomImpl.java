@@ -4,6 +4,7 @@ import com.mays.srm.ticket.repository.custom.TicketDaoCustom;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardDepartmentTicketCountDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -120,5 +121,20 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
         long total = (Long) countQ.getSingleResult();
 
         return new PageImpl<>(content, pageable, total);
+    }
+    
+    @Override
+    public List<TicketUserDashboardResponseDTO> getLightweightTicketsByUserId(Integer userId) {
+        String queryString = "SELECT new com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO(" +
+                "t.ticketId, d.serialNo, s.statusName) " +
+                "FROM Ticket t " +
+                "LEFT JOIN t.device d " +
+                "LEFT JOIN t.ticketStatus s " +
+                "WHERE t.userMaster.userId = :userId " +
+                "ORDER BY t.createdDate DESC";
+
+        TypedQuery<TicketUserDashboardResponseDTO> query = entityManager.createQuery(queryString, TicketUserDashboardResponseDTO.class);
+        query.setParameter("userId", userId);
+        return query.getResultList();
     }
 }

@@ -1,5 +1,4 @@
-package com.mays.srm.security;
-import com.mays.srm.user.entities.Employee;
+package com.mays.srm.security.core;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,15 +17,19 @@ public class CustomUserDetails implements UserDetails {
     private final boolean isActive;
     private final String name;
     private final Integer userId;
+    private final boolean isAccountNonLocked;
+    private final boolean firstTimeLogin;
 
     // Constructor to build our "User/employee"
-    public CustomUserDetails(String mobileNo, String password, String role, boolean isActive, String name, Integer userId) {
+    public CustomUserDetails(String mobileNo, String password, String role, boolean isActive, String name, Integer userId, boolean isAccountNonLocked, boolean firstTimeLogin) {
         this.mobileNo = mobileNo;
         this.password = password;
         this.role = role;
         this.isActive = isActive;
         this.name = name;
         this.userId = userId;
+        this.isAccountNonLocked = isAccountNonLocked;
+        this.firstTimeLogin = firstTimeLogin;
     }
 
     public String getName() {
@@ -35,6 +38,10 @@ public class CustomUserDetails implements UserDetails {
 
     public Integer getUserId() {
         return userId;
+    }
+
+    public boolean isFirstTimeLogin() {
+        return firstTimeLogin;
     }
 
     // Spring asks: What are this user's roles?
@@ -60,7 +67,7 @@ public class CustomUserDetails implements UserDetails {
     public boolean isAccountNonExpired() { return true; }
     
     @Override
-    public boolean isAccountNonLocked() { return isActive; } // If isActive is false, they can't login!
+    public boolean isAccountNonLocked() { return isAccountNonLocked; }
     
     @Override
     public boolean isCredentialsNonExpired() { return true; }

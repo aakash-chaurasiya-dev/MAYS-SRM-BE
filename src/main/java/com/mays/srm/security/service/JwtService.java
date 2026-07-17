@@ -1,7 +1,8 @@
-package com.mays.srm.security;
+package com.mays.srm.security.service;
+
+import com.mays.srm.security.core.*;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,10 @@ public class JwtService {
     @Value("${jwt.expiration:86400000}")
     private long jwtExpiration;
 
+    public long getJwtExpiration() {
+        return jwtExpiration;
+    }
+
     private Key getSignInKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
@@ -30,10 +35,11 @@ public class JwtService {
     /**
      * ACTION 1: Generate the Token when someone successfully logs in.
      */
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, String sessionId) {
         CustomUserDetails customUser = (CustomUserDetails) userDetails;
         return Jwts.builder()
                 .setSubject(userDetails.getUsername()) // Who is this for? (Mobile No)
+                .setId(sessionId) // Unique ID for the token
                 .claim("roles", userDetails.getAuthorities()) // Add extra info like their role
                 .claim("name", customUser.getName()) // Add the user's name
                 .claim("userId", customUser.getUserId()) // Add the user's ID

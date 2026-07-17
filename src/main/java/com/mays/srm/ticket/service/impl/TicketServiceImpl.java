@@ -5,12 +5,14 @@ import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.ticket.service.TicketAccessoriesService;
 import com.mays.srm.ticket.service.TicketService;
 import com.mays.srm.ticket.service.TicketTimeTrackingService;
+import com.mays.srm.notification.service.NotificationService;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.user.entities.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketBillingService ticketBillingService;
     private final TicketAccessoriesService ticketAccessoriesService;
     private final TicketTimeTrackingService ticketTimeTrackingService;
+    private final NotificationService notificationService;
 
     @Autowired
     public TicketServiceImpl(TicketDao repository,
@@ -50,7 +53,8 @@ public class TicketServiceImpl implements TicketService {
             TicketAuditService ticketAuditService,
             TicketBillingService ticketBillingService,
             TicketAccessoriesService ticketAccessoriesService,
-            TicketTimeTrackingService ticketTimeTrackingService) {
+            TicketTimeTrackingService ticketTimeTrackingService,
+            NotificationService notificationService) {
         this.repository = repository;
         this.ticketQueryService = ticketQueryService;
         this.ticketMapperService = ticketMapperService;
@@ -60,6 +64,7 @@ public class TicketServiceImpl implements TicketService {
         this.ticketBillingService = ticketBillingService;
         this.ticketAccessoriesService = ticketAccessoriesService;
         this.ticketTimeTrackingService = ticketTimeTrackingService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -104,6 +109,17 @@ public class TicketServiceImpl implements TicketService {
                 ticketAccessoriesService.syncAccessories(savedTicket, requestDTO.getAccessoryIds());
             }
 
+            // Enqueue notification email
+            if (savedTicket.getEmailId() != null && !savedTicket.getEmailId().isEmpty()) {
+                java.util.Map<String, Object> variables = new java.util.HashMap<>();
+                variables.put("ticketNo", savedTicket.getTicketId());
+                variables.put("status", savedTicket.getTicketStatus() != null ? savedTicket.getTicketStatus().getStatusName() : "Created");
+                variables.put("description", savedTicket.getTicketDescription());
+                variables.put("userName", savedTicket.getUserMaster().getFirstName() != null ? savedTicket.getUserMaster().getFirstName() : "Customer");
+                variables.put("company_name", "Mays Computer Repair & Solutions");
+                notificationService.enqueueEmail(savedTicket.getEmailId(), "Ticket Created: " + savedTicket.getTicketId(), "ticket-notification", variables);
+            }
+
             return ticketMapperService.mapToResponseDTO(savedTicket);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
@@ -138,6 +154,11 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable) {
         return ticketQueryService.getTicketsByDepartmentDashboard(departmentName, pageable);
+    }
+    
+    @Override
+    public List<TicketUserDashboardResponseDTO> getLightweightTicketsByUserId(Integer userId) {
+        return ticketQueryService.getLightweightTicketsByUserId(userId);
     }
 
     // This is Redies Changes: Remove ticket from cache when it is updated
@@ -194,6 +215,16 @@ public class TicketServiceImpl implements TicketService {
         if (requestDTO.getAccessoryIds() != null) {
             ticketAccessoriesService.syncAccessories(updatedTicket, requestDTO.getAccessoryIds());
         }
+
+        // Enqueue notification email
+        if (updatedTicket.getEmailId() != null && !updatedTicket.getEmailId().isEmpty()) {
+            java.util.Map<String, Object> variables = new java.util.HashMap<>();
+            variables.put("ticketNo", updatedTicket.getTicketId());
+            variables.put("status", updatedTicket.getTicketStatus() != null ? updatedTicket.getTicketStatus().getStatusName() : "Updated");
+            variables.put("description", updatedTicket.getTicketDescription());
+            notificationService.enqueueEmail(updatedTicket.getEmailId(), "Ticket Updated: " + updatedTicket.getTicketId(), "ticket-notification", variables);
+        }
+
         return ticketMapperService.mapToResponseDTO(updatedTicket);
     }
 

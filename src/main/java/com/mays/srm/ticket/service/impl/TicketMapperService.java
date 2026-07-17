@@ -26,6 +26,7 @@ public class TicketMapperService {
             dto.setUserFirstName(ticket.getUserMaster().getFirstName());
             dto.setUserLastName(ticket.getUserMaster().getLastName());
             dto.setUserMobileNo(ticket.getUserMaster().getMobileNo());
+            dto.setUserId(ticket.getUserMaster().getUserId());
         }
         if (ticket.getTicketType() != null) {
             dto.setTicketTypeName(ticket.getTicketType().getTicketTypeName());
