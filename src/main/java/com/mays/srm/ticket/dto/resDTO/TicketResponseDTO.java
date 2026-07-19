@@ -34,4 +34,12 @@ public class TicketResponseDTO {
     private LocalDateTime createdDate;
     private LocalDateTime lastUpdatedDate;
     private Integer modNo;
+
+    public Integer getTicketId() {
+        return this.ticketId;
+    }
+
+    public void setTicketId(Integer ticketId) {
+        this.ticketId = ticketId;
+    }
 }

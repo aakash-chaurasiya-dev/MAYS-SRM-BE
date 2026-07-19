@@ -39,13 +39,36 @@ public class FileServerService {
         HttpEntity<MultiValueMap<String, Object>> request =
                 new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> response = rest.postForEntity(
-                fileServerUrl, request, Map.class);
+        ResponseEntity<Map> response;
+        try {
+            response = rest.postForEntity(
+                    fileServerUrl + "/upload", request, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload file to File Server: " + e.getMessage(), e);
+        }
 
         if (response.getBody() != null && response.getBody().containsKey("url")) {
              return (String) response.getBody().get("url");
         }
         
         throw new RuntimeException("Failed to get URL from File Server");
+    }
+
+    /**
+     * Deletes a file from the external file server.
+     * @param filename The unique name of the file on the server.
+     */
+    public void deleteFile(String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            return;
+        }
+        RestTemplate rest = new RestTemplate();
+        // fileServerUrl typically ends with /upload, we replace it with /delete/
+        String deleteUrl = fileServerUrl + "/delete/" + filename;
+        try {
+            rest.delete(deleteUrl);
+        } catch (Exception e) {
+             throw new RuntimeException("Failed to delete file from File Server: " + e.getMessage(), e);
+        }
     }
 }
