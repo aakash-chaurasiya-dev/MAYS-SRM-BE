@@ -145,7 +145,7 @@ public class SecurityConfig {
                                                 // Purchase Team
                                                 // Since employee management is matched above, they are excluded from
                                                 // this.
-                                                .anyRequest().hasAnyRole("MANAGER", "PURCHASE"))
+                                                .anyRequest().hasAnyRole("MANAGER", "PURCHASE","ENGINEER"))
 
                                 // Set Session Management (Make the API Stateless)
                                 // Meaning: Do NOT remember users between clicks. Force them to show the

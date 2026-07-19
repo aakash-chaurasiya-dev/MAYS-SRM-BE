@@ -17,4 +17,6 @@ public class TicketTimeTrackingResponseDTO {
     private Integer accumulatedMinutes;
     private LocalDateTime lastClockStart;
     private Boolean isActive;
+    private Integer targetMinutes;
+    private Boolean isCrossedTAT;
 }

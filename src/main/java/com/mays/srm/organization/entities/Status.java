@@ -30,6 +30,12 @@ public class Status {
     @jakarta.persistence.Column(name = "is_locked")
     private Boolean isLocked = false;
 
+    @Column(name = "allowed_department_ids")
+    private String allowedDepartmentIds;
+
+    @Column(name = "allowed_roles")
+    private String allowedRoles;
+
     @org.hibernate.annotations.CreationTimestamp
     @jakarta.persistence.Column(name = "insert_date", updatable = false)
     private java.util.Date insertDate;
