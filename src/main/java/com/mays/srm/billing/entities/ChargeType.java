@@ -17,4 +17,15 @@ public class ChargeType {
 
     @Column(name = "Charge_description", length = 255)
     private String chargeDescription;
+
+    @jakarta.persistence.Column(name = "is_locked")
+    private Boolean isLocked = false;
+
+    @org.hibernate.annotations.CreationTimestamp
+    @jakarta.persistence.Column(name = "insert_date", updatable = false)
+    private java.util.Date insertDate;
+
+    @org.hibernate.annotations.UpdateTimestamp
+    @jakarta.persistence.Column(name = "last_update_date")
+    private java.util.Date lastUpdateDate;
 }

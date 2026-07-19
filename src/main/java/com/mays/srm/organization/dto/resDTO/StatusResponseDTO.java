@@ -8,4 +8,8 @@ public class StatusResponseDTO {
     private Integer statusFlg;
     private String statusDescription;
     private String statusType;
+
+    private Boolean isLocked;
+    private java.util.Date insertDate;
+    private java.util.Date lastUpdateDate;
 }

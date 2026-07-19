@@ -1,6 +1,4 @@
 package com.mays.srm.device.controller;
-
-import com.mays.srm.device.dto.request.DeviceRequestDTO;
 import com.mays.srm.device.dto.resDTO.DeviceResponseDTO;
 import com.mays.srm.device.service.DeviceService;
 import org.springframework.beans.factory.annotation.Autowired;

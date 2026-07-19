@@ -86,6 +86,11 @@ public class StatusServiceImpl implements StatusService {
     @Override
     @CacheEvict(value = "statuses", allEntries = true)
     public void delete(Integer id) {
+
+        var entityForLockCheck = repository.findById(id).orElseThrow(() -> new com.mays.srm.exception.ResourceNotFoundException("Not found with ID: " + id));
+        if (Boolean.TRUE.equals(entityForLockCheck.getIsLocked())) {
+            throw new RuntimeException("Cannot modify a locked system configuration.");
+        }
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Status not found with ID: " + id);
         }

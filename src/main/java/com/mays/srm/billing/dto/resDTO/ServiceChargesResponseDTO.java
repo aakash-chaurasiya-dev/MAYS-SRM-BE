@@ -8,4 +8,8 @@ public class ServiceChargesResponseDTO {
     private String brandName;
     private String descr;
     private BigDecimal amount;
+
+    private Boolean isLocked;
+    private java.util.Date insertDate;
+    private java.util.Date lastUpdateDate;
 }

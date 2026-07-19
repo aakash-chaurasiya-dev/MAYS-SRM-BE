@@ -122,6 +122,8 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
                                                 .requestMatchers("/api/device-accessories/**")
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER")
+                                                .requestMatchers(HttpMethod.POST,"/api/user-entry-reports")
+                                                .hasAnyRole("USER")
 
                                                 // 3. TICKETS, DEVICES, BRANCHES, STATUSES: Accessible by Manager,
                                                 // Purchase, Engineer, and Admin

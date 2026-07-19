@@ -14,13 +14,12 @@ import com.mays.srm.ticket.service.TicketTimeTrackingService;
 import com.mays.srm.ticket.repository.TicketLogsDao;
 import com.mays.srm.ticket.entities.TicketLogs;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import com.mays.srm.util.RestPageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
@@ -304,7 +303,7 @@ public class TicketTimeTrackingServiceImpl implements TicketTimeTrackingService 
                 pageContent = new ArrayList<>();
             }
             
-            return new PageImpl<>(pageContent, pageable, historyList.size());
+            return new RestPageImpl<>(pageContent, pageable, historyList.size());
             
         } catch (Exception ex) {
             log.error("Error fetching ticket history for employee id: {}", employeeId, ex);
