@@ -7,4 +7,6 @@ public class StatusRequestDTO {
     private Integer statusFlg;
     private String statusDescription;
     private String statusType;
+    private String allowedDepartmentIds;
+    private String allowedRoles;
 }

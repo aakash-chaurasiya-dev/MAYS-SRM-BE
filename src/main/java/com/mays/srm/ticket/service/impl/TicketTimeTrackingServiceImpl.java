@@ -79,6 +79,16 @@ public class TicketTimeTrackingServiceImpl implements TicketTimeTrackingService 
         dto.setAccumulatedMinutes(entity.getAccumulatedMinutes());
         dto.setLastClockStart(entity.getLastClockStart());
         dto.setIsActive(entity.getIsActive());
+        
+        if (entity.getAssignee() != null) {
+            String role = entity.getAssignee().getRole();
+            int targetMins = (role != null && role.equalsIgnoreCase("ROLE_ENGINEER")) ? 240 : 120;
+            dto.setTargetMinutes(targetMins);
+            if (entity.getAccumulatedMinutes() != null) {
+                dto.setIsCrossedTAT(entity.getAccumulatedMinutes() > targetMins);
+            }
+        }
+        
         return dto;
     }
 
@@ -274,6 +284,17 @@ public class TicketTimeTrackingServiceImpl implements TicketTimeTrackingService 
                 dto.setHoursSpent(Math.round((totalMinutes / 60.0) * 100.0) / 100.0);
                 dto.setCreatedDate(ticket.getCreatedDate());
                 dto.setSlaDate(ticket.getTargetDate());
+                
+                Employee assignee = tRecords.get(0).getAssignee();
+                double targetHours = 2.0;
+                if (assignee != null) {
+                    String role = assignee.getRole();
+                    if (role != null && role.equalsIgnoreCase("ROLE_ENGINEER")) {
+                        targetHours = 4.0;
+                    }
+                }
+                dto.setTargetHours(targetHours);
+                dto.setIsCrossedTAT((totalMinutes / 60.0) > targetHours);
                 
                 List<TicketLogs> logs = ticketLogsDao.findByTicketTicketId(ticket.getTicketId());
                 logs.sort(Comparator.comparing(TicketLogs::getModificationDate).reversed());
