@@ -1,5 +1,5 @@
 package com.mays.srm.device.service.impl;
-import com.mays.srm.device.entities.Device;
+
 import com.mays.srm.device.dto.request.BrandRequestDTO;
 import com.mays.srm.device.dto.resDTO.BrandResponseDTO;
 import com.mays.srm.device.entities.Brand;
@@ -39,13 +39,14 @@ public class BrandServiceImpl implements BrandService {
     public BrandResponseDTO create(BrandRequestDTO requestDTO) {
         try {
             Brand brand = modelMapper.map(requestDTO, Brand.class);
-            
+
             if (requestDTO.getDeviceTypeId() != null) {
                 Optional<DeviceType> deviceTypeOpt = deviceTypeDao.findById(requestDTO.getDeviceTypeId());
                 if (deviceTypeOpt.isPresent()) {
                     brand.setDeviceType(deviceTypeOpt.get());
                 } else {
-                    throw new ResourceNotFoundException("Device Type not found with ID: " + requestDTO.getDeviceTypeId());
+                    throw new ResourceNotFoundException(
+                            "Device Type not found with ID: " + requestDTO.getDeviceTypeId());
                 }
             }
 
@@ -87,7 +88,7 @@ public class BrandServiceImpl implements BrandService {
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Brand not found with ID: " + id);
         }
-        
+
         Brand existingBrand = existingOpt.get();
         modelMapper.map(requestDTO, existingBrand);
 
@@ -101,7 +102,7 @@ public class BrandServiceImpl implements BrandService {
         } else {
             existingBrand.setDeviceType(null);
         }
-        
+
         try {
             Brand updatedBrand = repository.save(existingBrand);
             return mapToResponseDTO(updatedBrand);
@@ -113,6 +114,12 @@ public class BrandServiceImpl implements BrandService {
     @Override
     @CacheEvict(value = "brands", allEntries = true)
     public void delete(Integer id) {
+
+        var entityForLockCheck = repository.findById(id)
+                .orElseThrow(() -> new com.mays.srm.exception.ResourceNotFoundException("Not found with ID: " + id));
+        if (Boolean.TRUE.equals(entityForLockCheck.getIsLocked())) {
+            throw new RuntimeException("Cannot modify a locked system configuration.");
+        }
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Brand not found with ID: " + id);
         }

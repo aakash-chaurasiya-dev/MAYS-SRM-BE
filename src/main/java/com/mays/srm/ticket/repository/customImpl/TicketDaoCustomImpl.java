@@ -7,7 +7,7 @@ import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import com.mays.srm.util.RestPageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -57,7 +57,7 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
         Query countQ = entityManager.createQuery("SELECT COUNT(t) FROM Ticket t");
         long total = (Long) countQ.getSingleResult();
 
-        return new PageImpl<>(content, pageable, total);
+        return new RestPageImpl<>(content, pageable, total);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
         }
         long total = (Long) countQ.getSingleResult();
 
-        return new PageImpl<>(content, pageable, total);
+        return new RestPageImpl<>(content, pageable, total);
     }
     
     @Override

@@ -73,6 +73,10 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
         DeviceAccessoryMaster entity = dao.findById(id)
                 .orElseThrow(() -> new RuntimeException("DeviceAccessoryMaster not found with id: " + id));
 
+        if (Boolean.TRUE.equals(entity.getIsLocked())) {
+            throw new RuntimeException("Cannot modify a locked system configuration.");
+        }
+
         if (!entity.getDeviceType().getDeviceTypeId().equals(requestDTO.getDeviceTypeId())) {
             DeviceType deviceType = deviceTypeDao.findById(requestDTO.getDeviceTypeId())
                     .orElseThrow(() -> new RuntimeException("DeviceType not found with id: " + requestDTO.getDeviceTypeId()));
@@ -92,6 +96,10 @@ public class DeviceAccessoryMasterServiceImpl implements DeviceAccessoryMasterSe
     public void delete(Integer id) {
         DeviceAccessoryMaster entity = dao.findById(id)
                 .orElseThrow(() -> new RuntimeException("DeviceAccessoryMaster not found with id: " + id));
+        
+        if (Boolean.TRUE.equals(entity.getIsLocked())) {
+            throw new RuntimeException("Cannot modify a locked system configuration.");
+        }
         dao.delete(entity);
     }
 

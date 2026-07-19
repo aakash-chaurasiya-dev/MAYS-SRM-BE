@@ -6,4 +6,8 @@ public class DeviceTypeResponseDTO {
     private Integer deviceTypeId;
     private String deviceTypeName;
     private String deviceTypeDescription;
+
+    private Boolean isLocked;
+    private java.util.Date insertDate;
+    private java.util.Date lastUpdateDate;
 }

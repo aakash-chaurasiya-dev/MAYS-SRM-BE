@@ -36,4 +36,7 @@ public class DeviceAccessoryMaster {
     @UpdateTimestamp
     @Column(name = "last_update_date")
     private Date lastUpdateDate;
+
+    @jakarta.persistence.Column(name = "is_locked")
+    private Boolean isLocked = false;
 }

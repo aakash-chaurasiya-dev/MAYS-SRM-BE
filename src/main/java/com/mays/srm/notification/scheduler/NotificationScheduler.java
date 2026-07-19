@@ -35,7 +35,7 @@ public class NotificationScheduler {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Scheduled(fixedDelay = 10000) // Runs every 10 seconds
+    @Scheduled(fixedDelay = 100000000) // Runs every 10 seconds
     public void processPendingNotifications() {
         List<NotificationOutbox> pendingList = notificationOutboxDao.findByStatus("PENDING");
 

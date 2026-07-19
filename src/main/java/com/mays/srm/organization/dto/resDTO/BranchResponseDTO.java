@@ -6,4 +6,8 @@ public class BranchResponseDTO {
     private Integer branchId;
     private String branchName;
     private String branchDescription;
+
+    private Boolean isLocked;
+    private java.util.Date insertDate;
+    private java.util.Date lastUpdateDate;
 }

@@ -12,4 +12,6 @@ public class DeviceAccessoryMasterResponseDTO {
     private String deviceTypeName;
     private Date insertDate;
     private Date lastUpdateDate;
+
+    private Boolean isLocked;
 }
