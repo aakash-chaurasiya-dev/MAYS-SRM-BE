@@ -66,6 +66,8 @@ public class SecurityConfig {
                                                 // Added Swagger UI URLs to permitAll
                                                 .requestMatchers(
                                                                 "/api/auth/**",
+                                                                "/api/files/**",
+                                                                "/files/**",
                                                                 "/v3/api-docs/**",
                                                                 "/v3/api-docs.yaml",
                                                                 "/swagger-ui/**",
