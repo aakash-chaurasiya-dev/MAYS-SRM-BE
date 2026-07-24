@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,7 @@ public class TicketQueryService {
     }
 
     // get All tickets for Dashboard No mapper required
+    @Cacheable(value = "dashboardTickets", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<TicketDashboardResponseDTO> getTicketsForDashboard(@NonNull Pageable pageable) {
         return ticketDao.getAllTicketDashboard(pageable);
     }

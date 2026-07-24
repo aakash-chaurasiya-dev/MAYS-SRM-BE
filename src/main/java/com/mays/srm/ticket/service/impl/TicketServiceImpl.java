@@ -23,9 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-// This is Redies Changes: Import Spring Cache Annotations
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +69,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "dashboardTickets", allEntries = true)
     public TicketResponseDTO create(TicketRequestDTO requestDTO) {
         try {
             Ticket ticket = new Ticket();
@@ -164,7 +165,10 @@ public class TicketServiceImpl implements TicketService {
     // This is Redies Changes: Remove ticket from cache when it is updated
     @Override
     @Transactional
-    @CacheEvict(value = "tickets", key = "#id")
+    @Caching(evict = {
+        @CacheEvict(value = "tickets", key = "#id"),
+        @CacheEvict(value = "dashboardTickets", allEntries = true)
+    })
     public TicketResponseDTO update(Integer id, TicketRequestDTO requestDTO) {
         Optional<Ticket> ticketOpt = repository.findById(id);
         if (ticketOpt.isEmpty()) {
@@ -230,7 +234,10 @@ public class TicketServiceImpl implements TicketService {
 
     // This is Redies Changes: Remove ticket from cache when deleted
     @Override
-    @CacheEvict(value = "tickets", key = "#id")
+    @Caching(evict = {
+        @CacheEvict(value = "tickets", key = "#id"),
+        @CacheEvict(value = "dashboardTickets", allEntries = true)
+    })
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Ticket not found with ID: " + id);
