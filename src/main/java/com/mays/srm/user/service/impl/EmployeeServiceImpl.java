@@ -213,11 +213,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee.setRole("ROLE_PURCHASE");
             } else if ("Management".equalsIgnoreCase(departmentName)) {
                 employee.setRole("ROLE_MANAGER");
+            } else if ("Executive".equalsIgnoreCase(departmentName) || "Executive Team".equalsIgnoreCase(departmentName) || "Executives".equalsIgnoreCase(departmentName)) {
+                employee.setRole("ROLE_EXECUTIVE");
             } else {
                 employee.setRole("ROLE_ADMIN");
             }
         } else {
-            throw new ResourceNotFoundException("Department not found with ID: " + employee.getDepartment().getDepartmentId());
+            throw new ResourceNotFoundException("Department not specified or not found.");
         }
     }
 

@@ -21,14 +21,6 @@ public class Department {
     @Column(name = "department_description")
     private String departmentDescription;
 
-    public String getDepartmentName() {
-        return this.departmentName;
-    }
-
-    public void setDepartmentName(String departmentName) {
-        this.departmentName = departmentName;
-    }
-
     @jakarta.persistence.Column(name = "is_locked")
     private Boolean isLocked = false;
 
@@ -39,4 +31,28 @@ public class Department {
     @org.hibernate.annotations.UpdateTimestamp
     @jakarta.persistence.Column(name = "last_update_date")
     private java.util.Date lastUpdateDate;
+
+    public Integer getDepartmentId() {
+        return this.departmentId;
+    }
+
+    public void setDepartmentId(Integer departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public String getDepartmentName() {
+        return this.departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
+
+    public String getDepartmentDescription() {
+        return this.departmentDescription;
+    }
+
+    public void setDepartmentDescription(String departmentDescription) {
+        this.departmentDescription = departmentDescription;
+    }
 }
