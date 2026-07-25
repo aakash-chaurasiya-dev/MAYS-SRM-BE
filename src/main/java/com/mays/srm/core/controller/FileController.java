@@ -30,7 +30,7 @@ public class FileController {
      * @param file Multipart file uploaded by client
      * @return JSON response with file url, filename, and type
      */
-    @PostMapping("/upload")
+    @PostMapping("/upload") 
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

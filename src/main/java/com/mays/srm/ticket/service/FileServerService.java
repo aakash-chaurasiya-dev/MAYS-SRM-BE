@@ -38,7 +38,9 @@ public class FileServerService {
             Files.createDirectories(uploadPath);
         }
 
+        System.out.println();
         Path targetLocation = uploadPath.resolve(uniqueFilename);
+        System.out.println("target location is "+targetLocation);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
         String baseUrl = (fileServerUrl != null && !fileServerUrl.trim().isEmpty())
