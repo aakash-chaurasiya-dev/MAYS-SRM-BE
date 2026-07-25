@@ -3,6 +3,7 @@ import com.mays.srm.ticket.repository.TicketDao;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.exception.ResourceNotFoundException;
 
@@ -60,6 +61,10 @@ public class TicketQueryService {
 
     public Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable) {
         return ticketDao.getTicketsByDepartmentDashboard(departmentName, pageable);
+    }
+    
+    public List<TicketUserDashboardResponseDTO> getLightweightTicketsByUserId(Integer userId) {
+        return ticketDao.getLightweightTicketsByUserId(userId);
     }
 
     /**

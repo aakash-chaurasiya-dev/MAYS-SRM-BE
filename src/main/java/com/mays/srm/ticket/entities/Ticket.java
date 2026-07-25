@@ -75,4 +75,12 @@ public class Ticket {
 
     @Column(name = "mod_no")
     private Integer modNo = 0;
+
+    public Integer getTicketId() {
+        return this.ticketId;
+    }
+
+    public void setTicketId(Integer ticketId) {
+        this.ticketId = ticketId;
+    }
 }

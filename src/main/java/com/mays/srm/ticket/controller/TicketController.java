@@ -1,18 +1,18 @@
 package com.mays.srm.ticket.controller;
 
-import com.mays.srm.ticket.repository.TicketAttachmentDao;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.entities.TicketAttachment;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
 import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import com.mays.srm.ticket.service.FileServerService;
+import com.mays.srm.ticket.service.TicketAttachmentService;
 import com.mays.srm.ticket.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -29,12 +30,7 @@ public class TicketController {
     private TicketService ticketService;
 
     @Autowired
-    private FileServerService fileServerService;
-
-    // Assuming you will create a service for attachments later
-    // For now, direct DAO usage is here for simplicity
-    @Autowired
-    private TicketAttachmentDao ticketAttachmentDao;
+    private TicketAttachmentService ticketAttachmentService;
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody TicketRequestDTO requestDTO) {
@@ -105,6 +101,11 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAllTicketsOfUser(userId));
     }
 
+    @GetMapping("/user/dashboard/{userId}")
+    public ResponseEntity<List<TicketUserDashboardResponseDTO>> getLightweightTicketsByUserId(@PathVariable Integer userId) {
+        return ResponseEntity.ok(ticketService.getLightweightTicketsByUserId(userId));
+    }
+
     @GetMapping("/branch/{branchId}")
     public ResponseEntity<List<TicketResponseDTO>> getAllTicketsOfBranch(@PathVariable int branchId) {
         return ResponseEntity.ok(ticketService.getAllTicketsOfBranch(branchId));
@@ -126,33 +127,26 @@ public class TicketController {
     public ResponseEntity<TicketAttachment> uploadAttachment(
             @PathVariable int ticketId,
             @RequestParam("file") MultipartFile file) throws Exception {
-
-        String sanitizedFilename = "unknown_file";
-        if (file.getOriginalFilename() != null) {
-            sanitizedFilename = file.getOriginalFilename().replaceAll("\\s+", "_");
-        }
-
-        String fileUrl = fileServerService.uploadFile(file, sanitizedFilename);
-
-        // This part should ideally be in an AttachmentService
-        TicketResponseDTO ticketDto = ticketService.getById(ticketId); // Ensures ticket exists
-        Ticket ticket = new Ticket();
-        ticket.setTicketId(ticketDto.getTicketId());
-
-        TicketAttachment attachment = new TicketAttachment();
-        attachment.setTicket(ticket);
-        attachment.setFileUrl(fileUrl);
-        attachment.setFileName(sanitizedFilename);
-
-        TicketAttachment savedAttachment = ticketAttachmentDao.save(attachment);
-
+        TicketAttachment savedAttachment = ticketAttachmentService.uploadAttachment(ticketId, file);
         return ResponseEntity.ok(savedAttachment);
     }
 
     @GetMapping("/{ticketId}/attachments")
     public ResponseEntity<List<TicketAttachment>> getTicketAttachments(@PathVariable int ticketId) {
-        ticketService.getById(ticketId); // Ensures ticket exists
-        List<TicketAttachment> attachments = ticketAttachmentDao.findAllByTicketTicketId(ticketId);
+        List<TicketAttachment> attachments = ticketAttachmentService.getTicketAttachments(ticketId);
         return ResponseEntity.ok(attachments);
+    }
+
+    @DeleteMapping("/{ticketId}/attachments/{attachmentId}")
+    public ResponseEntity<Void> deleteAttachment(@PathVariable int ticketId, @PathVariable Long attachmentId) {
+        try {
+            ticketAttachmentService.deleteAttachment(ticketId, attachmentId);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

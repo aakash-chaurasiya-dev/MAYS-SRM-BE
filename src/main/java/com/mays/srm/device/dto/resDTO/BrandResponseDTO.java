@@ -8,4 +8,8 @@ public class BrandResponseDTO {
     private String brandDescription;
     private String deviceTypeName; // For context
     private Integer deviceTypeId; // For context
+
+    private Boolean isLocked;
+    private java.util.Date insertDate;
+    private java.util.Date lastUpdateDate;
 }

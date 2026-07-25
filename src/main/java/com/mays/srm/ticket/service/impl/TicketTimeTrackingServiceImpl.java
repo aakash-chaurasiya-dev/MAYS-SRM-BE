@@ -14,13 +14,12 @@ import com.mays.srm.ticket.service.TicketTimeTrackingService;
 import com.mays.srm.ticket.repository.TicketLogsDao;
 import com.mays.srm.ticket.entities.TicketLogs;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import com.mays.srm.util.RestPageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 import java.time.LocalDateTime;
@@ -80,6 +79,16 @@ public class TicketTimeTrackingServiceImpl implements TicketTimeTrackingService 
         dto.setAccumulatedMinutes(entity.getAccumulatedMinutes());
         dto.setLastClockStart(entity.getLastClockStart());
         dto.setIsActive(entity.getIsActive());
+        
+        if (entity.getAssignee() != null) {
+            String role = entity.getAssignee().getRole();
+            int targetMins = (role != null && role.equalsIgnoreCase("ROLE_ENGINEER")) ? 240 : 120;
+            dto.setTargetMinutes(targetMins);
+            if (entity.getAccumulatedMinutes() != null) {
+                dto.setIsCrossedTAT(entity.getAccumulatedMinutes() > targetMins);
+            }
+        }
+        
         return dto;
     }
 
@@ -276,6 +285,17 @@ public class TicketTimeTrackingServiceImpl implements TicketTimeTrackingService 
                 dto.setCreatedDate(ticket.getCreatedDate());
                 dto.setSlaDate(ticket.getTargetDate());
                 
+                Employee assignee = tRecords.get(0).getAssignee();
+                double targetHours = 2.0;
+                if (assignee != null) {
+                    String role = assignee.getRole();
+                    if (role != null && role.equalsIgnoreCase("ROLE_ENGINEER")) {
+                        targetHours = 4.0;
+                    }
+                }
+                dto.setTargetHours(targetHours);
+                dto.setIsCrossedTAT((totalMinutes / 60.0) > targetHours);
+                
                 List<TicketLogs> logs = ticketLogsDao.findByTicketTicketId(ticket.getTicketId());
                 logs.sort(Comparator.comparing(TicketLogs::getModificationDate).reversed());
                 
@@ -304,7 +324,7 @@ public class TicketTimeTrackingServiceImpl implements TicketTimeTrackingService 
                 pageContent = new ArrayList<>();
             }
             
-            return new PageImpl<>(pageContent, pageable, historyList.size());
+            return new RestPageImpl<>(pageContent, pageable, historyList.size());
             
         } catch (Exception ex) {
             log.error("Error fetching ticket history for employee id: {}", employeeId, ex);

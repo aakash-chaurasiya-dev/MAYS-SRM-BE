@@ -29,4 +29,45 @@ public class TicketAttachment {
     @CreationTimestamp
     @Column(name = "uploaded_at", updatable = false)
     private LocalDateTime uploadedAt;
+
+    // Standard Getters and Setters
+    public Long getAttachmentId() {
+        return attachmentId;
+    }
+
+    public void setAttachmentId(Long attachmentId) {
+        this.attachmentId = attachmentId;
+    }
+
+    public Ticket getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        this.ticket = ticket;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
+    }
 }

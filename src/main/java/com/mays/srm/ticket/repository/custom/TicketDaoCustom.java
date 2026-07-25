@@ -2,8 +2,9 @@ package com.mays.srm.ticket.repository.custom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
-
+import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
+import java.util.List;
 
 public interface TicketDaoCustom {
     Page<TicketDashboardResponseDTO> getAllTicketDashboard(Pageable pageable);
@@ -11,4 +12,6 @@ public interface TicketDaoCustom {
     TicketDashboardTicketStatsResponseDTO getDashboardTicketStats();
     
     Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable);
+    
+    List<TicketUserDashboardResponseDTO> getLightweightTicketsByUserId(Integer userId);
 }

@@ -12,4 +12,6 @@ public class EmployeeTicketHistoryDTO {
     private Double hoursSpent;
     private LocalDateTime createdDate;
     private LocalDateTime slaDate;
+    private Double targetHours;
+    private Boolean isCrossedTAT;
 }

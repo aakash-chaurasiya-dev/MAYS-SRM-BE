@@ -61,6 +61,12 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
+		<!-- Email and Thymeleaf for Notifications -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 		<!-- This is Redies Changes: Added Redis Dependency -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
