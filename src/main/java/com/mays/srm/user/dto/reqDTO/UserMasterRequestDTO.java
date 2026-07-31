@@ -13,4 +13,7 @@ public class UserMasterRequestDTO {
     private String address;
     private Integer branchId; // Used to link to a branch, but without the name/description
     private Boolean isActive;
+
+    private Integer vendorId;
+    private String referredBy;
 }

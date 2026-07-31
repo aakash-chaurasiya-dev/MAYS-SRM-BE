@@ -4,6 +4,7 @@ import com.mays.srm.security.entities.SecurityProfile;
 import com.mays.srm.security.repository.SecurityProfileDao;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.entities.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,16 @@ public class SecurityProfileService {
         }
         SecurityProfile profile = new SecurityProfile();
         profile.setEmployee(employee);
+        return securityProfileDao.save(profile);
+    }
+
+    public SecurityProfile getOrCreateProfileForVendor(Vendor vendor) {
+        Optional<SecurityProfile> profileOpt = securityProfileDao.findByVendor_Id(vendor.getId());
+        if (profileOpt.isPresent()) {
+            return profileOpt.get();
+        }
+        SecurityProfile profile = new SecurityProfile();
+        profile.setVendor(vendor);
         return securityProfileDao.save(profile);
     }
 

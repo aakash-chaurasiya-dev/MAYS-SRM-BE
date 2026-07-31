@@ -114,5 +114,17 @@ public class TicketQueryService {
         }
         return dtoList;
     }
+
+    /**
+     * Gets all tickets associated with a specific vendor
+     */
+    public List<TicketResponseDTO> getAllTicketsOfVendor(Integer vendorId) {
+        List<Ticket> ticketList = ticketDao.findByVendorId(vendorId);
+        List<TicketResponseDTO> dtoList = new ArrayList<>();
+        for (Ticket ticket : ticketList) {
+            dtoList.add(mapperService.mapToResponseDTO(ticket));
+        }
+        return dtoList;
+    }
 }
 

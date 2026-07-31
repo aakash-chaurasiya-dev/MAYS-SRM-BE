@@ -24,5 +24,8 @@ public interface TicketDao extends JpaRepository<Ticket, Integer>, TicketDaoCust
 
     // + getAllTicketOfEmployee(int emp_id)
     List<Ticket> findByEmployeeEmployeeId(Integer employeeId);
+
+    // + getAllTicketOfVendor(int vendorId)
+    List<Ticket> findByVendorId(Integer vendorId);
 }
 

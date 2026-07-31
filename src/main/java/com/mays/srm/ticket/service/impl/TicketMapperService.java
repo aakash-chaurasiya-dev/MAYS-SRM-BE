@@ -26,7 +26,9 @@ public class TicketMapperService {
             dto.setUserFirstName(ticket.getUserMaster().getFirstName());
             dto.setUserLastName(ticket.getUserMaster().getLastName());
             dto.setUserMobileNo(ticket.getUserMaster().getMobileNo());
+            dto.setEmailId(ticket.getUserMaster().getEmailId());
             dto.setUserId(ticket.getUserMaster().getUserId());
+            dto.setCustomerAddress(ticket.getUserMaster().getAddress());
         }
         if (ticket.getTicketType() != null) {
             dto.setTicketTypeName(ticket.getTicketType().getTicketTypeName());
@@ -67,6 +69,30 @@ public class TicketMapperService {
             }
         }
 
+        if (ticket.getVendor() != null) {
+            dto.setVendorId(ticket.getVendor().getId());
+            dto.setVendorName(ticket.getVendor().getName());
+        }
+        if (ticket.getVendorUser() != null) {
+            dto.setVendorUserId(ticket.getVendorUser().getId());
+            dto.setVendorUserName(ticket.getVendorUser().getUser());
+            dto.setVendorUserMobileNo(ticket.getVendorUser().getContactNo());
+        }
+        if (ticket.getParentTicket() != null) {
+            dto.setParentTicketId(ticket.getParentTicket().getTicketId());
+        }
+
+        if (ticket.getReferredCategory() != null) {
+            dto.setReferredCategoryId(ticket.getReferredCategory().getReferredCategoryId());
+            dto.setReferredCategoryName(ticket.getReferredCategory().getReferredCategoryName());
+            dto.setReferredCategoryDecriptionTicket(ticket.getReferredCategoryDecriptionTicket());
+        }
+        
+        if (ticket.getWarrantyType() != null) {
+            dto.setWarrantyTypeId(ticket.getWarrantyType().getWarrantyTypeId());
+            dto.setWarrantyTypeName(ticket.getWarrantyType().getWarrantyTypeName());
+        }
+
         return dto;
     }
 
@@ -98,6 +124,18 @@ public class TicketMapperService {
                 dto.setDepartmentName(ticket.getEmployee().getDepartment().getDepartmentName());
             }
         }
+        if (ticket.getVendor() != null) {
+            dto.setVendorId(ticket.getVendor().getId());
+            dto.setVendorName(ticket.getVendor().getName());
+        }
+        if (ticket.getVendorUser() != null) {
+            dto.setVendorUserId(ticket.getVendorUser().getId());
+            dto.setVendorUserName(ticket.getVendorUser().getUser());
+        }
+        if (ticket.getParentTicket() != null) {
+            dto.setParentTicketId(ticket.getParentTicket().getTicketId());
+        }
+
         return dto;
     }
 }

@@ -15,6 +15,7 @@ public interface TicketService extends GenericService<TicketRequestDTO, TicketRe
     List<TicketResponseDTO> getAllTicketsOfBranch(int branchId);
     List<TicketResponseDTO> getAllTicketsOfStatus(int statusId);
     List<TicketResponseDTO> getAllTicketsOfEmployee(int employeeId);
+    List<TicketResponseDTO> getAllTicketsOfVendor(Integer vendorId);
     Page<TicketDashboardResponseDTO> getTicketsForDashboard(Pageable pageable);
     TicketDashboardTicketStatsResponseDTO getDashboardTicketStats();
     Page<TicketDashboardResponseDTO> getTicketsByDepartmentDashboard(String departmentName, Pageable pageable);

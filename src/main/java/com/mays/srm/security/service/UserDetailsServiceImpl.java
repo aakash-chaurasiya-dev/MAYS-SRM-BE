@@ -2,8 +2,10 @@ package com.mays.srm.security.service;
 import com.mays.srm.security.core.*;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.entities.Vendor;
 import com.mays.srm.user.repository.EmployeeDao;
 import com.mays.srm.user.repository.UserMasterDao;
+import com.mays.srm.user.repository.VendorDao;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +25,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private EmployeeDao employeeDao; // The Employee database
+
+    @Autowired
+    private VendorDao vendorDao; // The Vendor database
 
     @Autowired
     private SecurityProfileService securityProfileService;
@@ -57,7 +62,20 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return new CustomUserDetails(user.getMobileNo(), user.getPassword(), user.getRole(), user.getIsActive(), fullName, user.getUserId(), !isLocked, profile.getFirstTimeLogin());
         }
 
-        // 3. We didn't find anyone in either table! Deny login.
+        // 3. Ask the Vendor table: "Do you have this mobile number?"
+        Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+        if (vendorOpt.isPresent()) {
+            Vendor vendor = vendorOpt.get(); // We found a vendor!
+            
+            // Get their security profile
+            com.mays.srm.security.entities.SecurityProfile profile = securityProfileService.getOrCreateProfileForVendor(vendor);
+            boolean isLocked = securityProfileService.isAccountLocked(profile);
+
+            // We convert the Vendor into our CustomUserDetails
+            return new CustomUserDetails(vendor.getMobileNo(), vendor.getPassword(), vendor.getRoleName(), vendor.getIsActive(), vendor.getName(), vendor.getId(), !isLocked, profile.getFirstTimeLogin());
+        }
+
+        // 4. We didn't find anyone in any table! Deny login.
         throw new UsernameNotFoundException("No one found with mobile number: " + mobileNo);
     }
 }

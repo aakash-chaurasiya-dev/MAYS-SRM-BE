@@ -33,8 +33,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.entities.Vendor;
 import com.mays.srm.user.repository.EmployeeDao;
 import com.mays.srm.user.repository.UserMasterDao;
+import com.mays.srm.user.repository.VendorDao;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -77,6 +79,9 @@ public class AuthController {
     private UserMasterDao userMasterDao;
 
     @Autowired
+    private VendorDao vendorDao;
+
+    @Autowired
     private ActiveSessionDao activeSessionDao;
 
     @Autowired
@@ -112,6 +117,12 @@ public class AuthController {
                 if (userOpt.isPresent()) {
                     SecurityProfile profile = securityProfileService.getOrCreateProfileForUser(userOpt.get());
                     securityProfileService.recordFailedAttempt(profile);
+                } else {
+                    Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+                    if (vendorOpt.isPresent()) {
+                        SecurityProfile profile = securityProfileService.getOrCreateProfileForVendor(vendorOpt.get());
+                        securityProfileService.recordFailedAttempt(profile);
+                    }
                 }
             }
             return ResponseEntity.status(401).body(Map.of("error", "Invalid mobile number or password."));
@@ -125,6 +136,7 @@ public class AuthController {
         CustomUserDetails customUser = (CustomUserDetails) userDetails;
         Optional<Employee> empOpt = employeeDao.findByMobileNo(mobileNo);
         Optional<UserMaster> userOpt = Optional.empty();
+        Optional<Vendor> vendorOpt = Optional.empty();
 
         if (empOpt.isPresent()) {
             securityProfileService
@@ -134,6 +146,12 @@ public class AuthController {
             if (userOpt.isPresent()) {
                 securityProfileService
                         .resetFailedAttempts(securityProfileService.getOrCreateProfileForUser(userOpt.get()));
+            } else {
+                vendorOpt = vendorDao.findByMobileNo(mobileNo);
+                if (vendorOpt.isPresent()) {
+                    securityProfileService
+                            .resetFailedAttempts(securityProfileService.getOrCreateProfileForVendor(vendorOpt.get()));
+                }
             }
         }
 
@@ -157,6 +175,8 @@ public class AuthController {
             session.setEmployee(empOpt.get());
         } else if (userOpt.isPresent()) {
             session.setUser(userOpt.get());
+        } else if (vendorOpt.isPresent()) {
+            session.setVendor(vendorOpt.get());
         }
         activeSessionDao.save(session);
 
@@ -291,6 +311,11 @@ public class AuthController {
             Optional<UserMaster> userOpt = userMasterDao.findByMobileNo(mobileNo);
             if (userOpt.isPresent()) {
                 email = userOpt.get().getEmailId();
+            } else {
+                Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+                if (vendorOpt.isPresent()) {
+                    email = vendorOpt.get().getEmail();
+                }
             }
         }
         
@@ -351,6 +376,14 @@ public class AuthController {
                 UserMaster user = userOpt.get();
                 user.setPassword(passwordEncoder.encode(newPassword));
                 userMasterDao.save(user);
+                return ResponseEntity.ok(Map.of("message", "Password reset successfully."));
+            }
+            
+            Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+            if (vendorOpt.isPresent()) {
+                Vendor vendor = vendorOpt.get();
+                vendor.setPassword(passwordEncoder.encode(newPassword));
+                vendorDao.save(vendor);
                 return ResponseEntity.ok(Map.of("message", "Password reset successfully."));
             }
             

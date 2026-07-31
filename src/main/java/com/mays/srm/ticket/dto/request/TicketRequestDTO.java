@@ -14,7 +14,9 @@ public class TicketRequestDTO {
     private String ticketDescription;
     private Integer ticketBranchId;
     private Integer employeeId;
-    private String warrantyType;
+    private Integer referredCategoryId;
+    private String referredCategoryDecriptionTicket;
+    private Integer warrantyTypeId;
     private String priority;
     private String remarks; // Added for logging purposes during updates
     private Integer modifiedByEmployeeId; // Employee making the update
@@ -28,4 +30,8 @@ public class TicketRequestDTO {
 
     // Optional field for syncing accessories with the ticket
     private List<Integer> accessoryIds;
+
+    private Integer vendorId;
+    private Integer vendorUserId;
+    private Integer parentTicketId;
 }

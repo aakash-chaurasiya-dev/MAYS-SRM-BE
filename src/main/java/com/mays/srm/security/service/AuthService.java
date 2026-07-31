@@ -2,14 +2,19 @@ package com.mays.srm.security.service;
 
 import com.mays.srm.user.dto.reqDTO.EmployeeRequestDTO;
 import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
+import com.mays.srm.user.dto.reqDTO.VendorRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
+import com.mays.srm.user.dto.resDTO.VendorResponseDTO;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.entities.Vendor;
 import com.mays.srm.user.repository.EmployeeDao;
 import com.mays.srm.user.repository.UserMasterDao;
+import com.mays.srm.user.repository.VendorDao;
 import com.mays.srm.user.service.EmployeeService;
 import com.mays.srm.user.service.UserMasterService;
+import com.mays.srm.user.service.VendorService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -38,6 +43,12 @@ public class AuthService {
     @Autowired
     private UserMasterService userMasterService;
 
+    @Autowired
+    private VendorDao vendorDao;
+
+    @Autowired
+    private VendorService vendorService;
+
     @Cacheable(value = "userProfile", key = "#mobileNo")
     public Object getCurrentUserProfile(String mobileNo) {
         // 1. Check Employee table
@@ -59,6 +70,14 @@ public class AuthService {
             if (user.getBranch() != null) {
                 dto.setBranchName(user.getBranch().getBranchName());
             }
+            return dto;
+        }
+
+        // 3. Check Vendor table
+        Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+        if (vendorOpt.isPresent()) {
+            Vendor vendor = vendorOpt.get();
+            VendorResponseDTO dto = modelMapper.map(vendor, VendorResponseDTO.class);
             return dto;
         }
 
@@ -105,6 +124,21 @@ public class AuthService {
             }
 
             return userMasterService.update(user.getUserId(), requestDTO);
+        }
+
+        // 3. Check Vendor table
+        Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+        if (vendorOpt.isPresent()) {
+            Vendor vendor = vendorOpt.get();
+            VendorRequestDTO requestDTO = new VendorRequestDTO();
+            requestDTO.setName((String) request.get("name"));
+            requestDTO.setDescription((String) request.get("description"));
+            requestDTO.setAddress((String) request.get("address"));
+            requestDTO.setEmail((String) request.get("email"));
+            requestDTO.setMobileNo((String) request.get("mobileNo"));
+            requestDTO.setReferredBy((String) request.get("referredBy"));
+            
+            return vendorService.update(vendor.getId(), requestDTO);
         }
 
         return null; // Not found

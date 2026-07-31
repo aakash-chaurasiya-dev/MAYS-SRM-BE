@@ -121,6 +121,11 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAllTicketsOfEmployee(employeeId));
     }
 
+    @GetMapping("/vendor/{vendorId}")
+    public ResponseEntity<List<TicketResponseDTO>> getAllTicketsOfVendor(@PathVariable Integer vendorId) {
+        return ResponseEntity.ok(ticketService.getAllTicketsOfVendor(vendorId));
+    }
+
     // --- Attachment Endpoints ---
 
     @PostMapping("/{ticketId}/attachments")

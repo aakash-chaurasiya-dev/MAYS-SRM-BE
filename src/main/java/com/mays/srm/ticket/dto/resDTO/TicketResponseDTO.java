@@ -29,11 +29,23 @@ public class TicketResponseDTO {
     private Integer deviceBrandId;
     private Integer departmentId; // Added field
     private String departmentName; // Added field
-    private String warrantyType;
+    private Integer referredCategoryId;
+    private String referredCategoryName;
+    private String referredCategoryDecriptionTicket;
+    private Integer warrantyTypeId;
+    private String warrantyTypeName;
     private String priority;
     private LocalDateTime createdDate;
     private LocalDateTime lastUpdatedDate;
     private Integer modNo;
+
+    private Integer vendorId;
+    private String vendorName;
+    private Integer vendorUserId;
+    private String vendorUserName;
+    private String vendorUserMobileNo;
+    private String customerAddress;
+    private Integer parentTicketId;
 
     public Integer getTicketId() {
         return this.ticketId;

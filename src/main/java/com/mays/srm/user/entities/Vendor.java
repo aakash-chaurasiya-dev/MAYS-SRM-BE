@@ -37,6 +37,7 @@ public class Vendor {
     @Column(nullable = false, length = 50)
     private String roleName;        // e.g. ROLE_VENDOR
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 

@@ -12,5 +12,6 @@ import java.util.List;
 public interface ActiveSessionDao extends JpaRepository<ActiveSession, String> {
     List<ActiveSession> findByUser_UserId(Integer userId);
     List<ActiveSession> findByEmployee_EmployeeId(Integer employeeId);
+    List<ActiveSession> findByVendor_Id(Integer vendorId);
     void deleteByExpiresAtBefore(LocalDateTime time);
 }
