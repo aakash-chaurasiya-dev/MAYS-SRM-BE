@@ -15,10 +15,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.user.service.UserMasterService;
 import com.mays.srm.organization.service.BranchService;
-import com.mays.srm.user.dto.request.UserMasterRequestDTO;
 import com.mays.srm.security.entities.SecurityProfile;
 import com.mays.srm.security.entities.ActiveSession;
 import com.mays.srm.security.repository.ActiveSessionDao;
@@ -97,8 +98,7 @@ public class AuthController {
         // If the password is wrong or user is locked out, it automatically throws a 403
         // Forbidden Exception here!
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(mobileNo, password));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(mobileNo, password));
         } catch (LockedException e) {
             return ResponseEntity.status(403).body(Map.of("error", "Account is locked. Please try again later."));
         } catch (BadCredentialsException e) {

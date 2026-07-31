@@ -1,8 +1,8 @@
 package com.mays.srm.user.service.impl;
 
 import com.mays.srm.user.dto.StatusCountDTO;
-import com.mays.srm.user.dto.UserEntryReportRequestDTO;
-import com.mays.srm.user.dto.UserEntryReportResponseDTO;
+import com.mays.srm.user.dto.reqDTO.UserEntryReportRequestDTO;
+import com.mays.srm.user.dto.resDTO.UserEntryReportResponseDTO;
 import com.mays.srm.user.entities.UserEntryReport;
 import com.mays.srm.user.entities.UserMaster;
 import com.mays.srm.user.repository.UserEntryReportDao;

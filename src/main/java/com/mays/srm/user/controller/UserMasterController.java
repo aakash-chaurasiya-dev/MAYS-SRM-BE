@@ -1,5 +1,5 @@
 package com.mays.srm.user.controller;
-import com.mays.srm.user.dto.request.UserMasterRequestDTO;
+import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.user.service.UserMasterService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")

@@ -60,8 +60,7 @@ public class OtpService {
     }
 
     public boolean validateOtp(String email, String otp, String purpose) {
-        Optional<OtpTracking> optionalOtp = otpTrackingDao.findTopByEmailIdAndPurposeOrderByCreatedAtDesc(email,
-                purpose);
+        Optional<OtpTracking> optionalOtp = otpTrackingDao.findTopByEmailIdAndPurposeOrderByCreatedAtDesc(email,purpose);
 
         if (optionalOtp.isEmpty()) {
             throw new RuntimeException("No OTP requested for this email.");

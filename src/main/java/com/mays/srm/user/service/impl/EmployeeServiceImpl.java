@@ -1,17 +1,19 @@
 package com.mays.srm.user.service.impl;
 import com.mays.srm.user.entities.EmployeeSpec;
 import com.mays.srm.organization.repository.DepartmentDao;
-import com.mays.srm.user.dto.request.EmployeeRequestDTO;
+import com.mays.srm.user.dto.reqDTO.EmployeeRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
 import com.mays.srm.organization.entities.Department;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.entities.Vendor;
 import com.mays.srm.user.repository.EmployeeDao;
 import com.mays.srm.user.repository.EmployeeSpecDao;
 import com.mays.srm.user.repository.UserMasterDao;
 import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
+import com.mays.srm.user.repository.VendorDao;
 import com.mays.srm.user.service.EmployeeService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,23 +35,25 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
     private final UserMasterDao userMasterDao;
+    private final VendorDao vendorDao;
 
     // EmployeeSpecDao is no longer needed for explicit deletion due to cascade
     // private final EmployeeSpecDao employeeSpecDao;
 
     @Autowired
-    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, UserMasterDao userMasterDao) {
+    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, UserMasterDao userMasterDao, VendorDao vendorDao) {
         this.repository = repository;
         this.departmentDao = departmentDao;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
         this.userMasterDao = userMasterDao;
+        this.vendorDao = vendorDao;
     }
 
     @Override
     public EmployeeResponseDTO create(EmployeeRequestDTO requestDTO) {
         try {
-            validateMobileNumber(requestDTO.getMobileNo(), null, null);
+            validateMobileNumber(requestDTO.getMobileNo(), null, null,null);
             Employee employee = modelMapper.map(requestDTO, Employee.class);
 
             validateAndSetRelations(employee, requestDTO);
@@ -93,7 +97,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new ResourceNotFoundException("Cannot update. Employee not found with ID: " + id);
         }
 
-        validateMobileNumber(requestDTO.getMobileNo(), id, null);
+        validateMobileNumber(requestDTO.getMobileNo(), id, null,null);
 
         Employee existingEmployee = existingOpt.get();
         String currentPassword = existingEmployee.getPassword();
@@ -168,7 +172,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void validateMobileNumber(String mobileNo, Integer currentEmployeeId, Integer currentUserId) {
+    public void validateMobileNumber(String mobileNo, Integer currentEmployeeId, Integer currentUserId, Integer currentVendorId) {
         if (mobileNo == null || mobileNo.trim().isEmpty()) {
             return;
         }
@@ -186,6 +190,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (userOpt.isPresent()) {
             if (currentUserId == null || !userOpt.get().getUserId().equals(currentUserId)) {
                 throw new BadRequestException("Mobile number is already registered as a User.");
+            }
+        }
+
+        Optional<Vendor> vendorOpt = vendorDao.findByMobileNo(mobileNo);
+        if (vendorOpt.isPresent()) {
+            if (currentVendorId == null || !vendorOpt.get().getId().equals(currentVendorId)) {
+                throw new BadRequestException("Mobile number is already registered as a Vendor.");
             }
         }
     }

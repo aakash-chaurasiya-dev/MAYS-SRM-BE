@@ -1,7 +1,7 @@
 package com.mays.srm.user.service;
 
-import com.mays.srm.user.dto.UserEntryReportRequestDTO;
-import com.mays.srm.user.dto.UserEntryReportResponseDTO;
+import com.mays.srm.user.dto.reqDTO.UserEntryReportRequestDTO;
+import com.mays.srm.user.dto.resDTO.UserEntryReportResponseDTO;
 import com.mays.srm.user.dto.StatusCountDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

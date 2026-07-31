@@ -1,6 +1,6 @@
 package com.mays.srm.user.service.impl;
 import com.mays.srm.organization.repository.BranchDao;
-import com.mays.srm.user.dto.request.UserMasterRequestDTO;
+import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.organization.entities.Branch;
 import com.mays.srm.user.entities.UserMaster;
@@ -40,15 +40,16 @@ public class UserMasterServiceImpl implements UserMasterService {
     @Override
     public UserMasterResponseDTO create(UserMasterRequestDTO requestDTO) {
         try {
-            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, null);
+            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null,null, null);
             UserMaster user = modelMapper.map(requestDTO, UserMaster.class);
-            
+
+            //new chnages
             if (requestDTO.getBranchId() != null) {
                 Optional<Branch> branchOpt = branchDao.findById(requestDTO.getBranchId());
                 if (branchOpt.isPresent()) {
                     user.setBranch(branchOpt.get());
                 } else {
-                    throw new ResourceNotFoundException("Branch not found with ID: " + requestDTO.getBranchId());
+            //        throw new ResourceNotFoundException("Branch not found with ID: " + requestDTO.getBranchId());
                 }
             }
 
@@ -101,7 +102,7 @@ public class UserMasterServiceImpl implements UserMasterService {
                 throw new ResourceNotFoundException("Cannot update. User not found with ID: " + id);
             }
             
-            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, id);
+            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, id, null);
 
             UserMaster existingUser = existingUserOpt.get();
             String currentPassword = existingUser.getPassword();
