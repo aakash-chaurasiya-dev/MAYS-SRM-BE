@@ -1,20 +1,15 @@
-package com.mays.srm.user.dto;
+package com.mays.srm.user.dto.reqDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEntryReportResponseDTO {
-    private Integer entryNo;
+public class UserEntryReportRequestDTO {
     private Integer userId;
-    private String userName;
     private String reason;
-    private Date entryDate;
 }

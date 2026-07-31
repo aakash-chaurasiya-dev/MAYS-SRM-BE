@@ -1,5 +1,5 @@
 package com.mays.srm.user.controller;
-import com.mays.srm.user.dto.request.EmployeeRequestDTO;
+import com.mays.srm.user.dto.reqDTO.EmployeeRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
 import com.mays.srm.user.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;

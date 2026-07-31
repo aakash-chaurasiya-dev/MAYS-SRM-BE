@@ -1,7 +1,7 @@
 package com.mays.srm.security.service;
 
-import com.mays.srm.user.dto.request.EmployeeRequestDTO;
-import com.mays.srm.user.dto.request.UserMasterRequestDTO;
+import com.mays.srm.user.dto.reqDTO.EmployeeRequestDTO;
+import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeResponseDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.user.entities.Employee;

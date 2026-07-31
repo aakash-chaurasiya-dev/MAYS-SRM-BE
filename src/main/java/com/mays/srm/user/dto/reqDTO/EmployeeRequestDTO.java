@@ -1,4 +1,4 @@
-package com.mays.srm.user.dto.request;
+package com.mays.srm.user.dto.reqDTO;
 import lombok.Data;
 
 @Data

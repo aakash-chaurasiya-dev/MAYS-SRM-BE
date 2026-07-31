@@ -1,5 +1,5 @@
 package com.mays.srm.user.service.impl;
-import com.mays.srm.user.dto.request.EmployeeSpecRequestDTO;
+import com.mays.srm.user.dto.reqDTO.EmployeeSpecRequestDTO;
 import com.mays.srm.user.dto.resDTO.EmployeeSpecResponseDTO;
 import com.mays.srm.device.entities.DeviceType;
 import com.mays.srm.device.repository.DeviceTypeDao;
