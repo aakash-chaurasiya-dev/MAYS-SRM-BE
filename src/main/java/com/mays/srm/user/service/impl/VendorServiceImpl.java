@@ -3,7 +3,6 @@ package com.mays.srm.user.service.impl;
 import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
-import com.mays.srm.organization.repository.BranchDao;
 import com.mays.srm.user.dto.reqDTO.VendorRequestDTO;
 import com.mays.srm.user.dto.resDTO.VendorResponseDTO;
 import com.mays.srm.user.entities.Vendor;
@@ -15,10 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import lombok.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.mays.srm.util.RestPageImpl;
 
 @Service
 public class VendorServiceImpl implements VendorService {
@@ -27,7 +29,6 @@ public class VendorServiceImpl implements VendorService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
     private final EmployeeService employeeService;
-
 
     @Autowired
     public VendorServiceImpl(VendorDao repository, PasswordEncoder passwordEncoder, ModelMapper modelMapper, EmployeeService employeeService) {
@@ -40,8 +41,8 @@ public class VendorServiceImpl implements VendorService {
     @Override
     public VendorResponseDTO create(VendorRequestDTO requestDTO) {
         try {
-            //tells us if this mobile no is registed with any employee, user or vendor
-            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, null,null);
+            // tells us if this mobile no is registered with any employee, user or vendor
+            employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, null, null);
             Vendor vendor = modelMapper.map(requestDTO, Vendor.class);
             
             // Encode password
@@ -56,10 +57,14 @@ public class VendorServiceImpl implements VendorService {
                 vendor.setRoleName("ROLE_VENDOR");
             }
 
+            if (vendor.getIsActive() == null) {
+                vendor.setIsActive(true);
+            }
+
             Vendor savedVendor = repository.save(vendor);
             return modelMapper.map(savedVendor, VendorResponseDTO.class);
-        } catch (DataIntegrityViolationException ex) {
-            throw new BadRequestException("A vendor with this email or mobile number already exists.", ex);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Vendor", ex);
         }
@@ -82,13 +87,16 @@ public class VendorServiceImpl implements VendorService {
     @Override
     public VendorResponseDTO update(Integer id, VendorRequestDTO requestDTO) {
         try {
-            Optional<Vendor> existingVendor = repository.findById(id);
-            if(existingVendor.isEmpty()){
+            Optional<Vendor> existingVendorOpt = repository.findById(id);
+            if (existingVendorOpt.isEmpty()) {
                 throw new ResourceNotFoundException("Cannot update. Vendor not found with ID: " + id);
             }
+            
             employeeService.validateMobileNumber(requestDTO.getMobileNo(), null, null, id);
-
+            
+            Vendor existingVendor = existingVendorOpt.get();
             String currentPassword = existingVendor.getPassword();
+            Boolean currentIsActive = existingVendor.getIsActive();
             modelMapper.map(requestDTO, existingVendor);
 
             // Preserve original password if not provided in the request
@@ -98,20 +106,16 @@ public class VendorServiceImpl implements VendorService {
                 existingVendor.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
             }
 
-
-            try {
-                Vendor updatedVendor = repository.save(existingVendor);
-                return modelMapper.map(updatedVendor, VendorResponseDTO.class);
-            } catch (DataIntegrityViolationException ex) {
-                throw new BadRequestException("A vendor with this email or mobile number already exists.", ex);
-            } catch (Exception ex) {
-                throw new InternalServerException("Error occurred while updating Vendor", ex);
+            // Restore or set isActive
+            if (currentIsActive != null) {
+                existingVendor.setIsActive(currentIsActive);
             }
-        }
-        catch (ResourceNotFoundException ex) {
+
+            Vendor updatedVendor = repository.save(existingVendor);
+            return modelMapper.map(updatedVendor, VendorResponseDTO.class);
+        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
             throw ex;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Vendor", ex);
         }
     }
@@ -124,7 +128,7 @@ public class VendorServiceImpl implements VendorService {
         try {
             repository.deleteById(id);
         } catch (DataIntegrityViolationException ex) {
-            throw new BadRequestException("Cannot delete Vendor because they are assigned to active records.", ex);
+            throw new DataIntegrityViolationException("Cannot delete Vendor because they are assigned to active records.", ex);
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while deleting Vendor with ID: " + id, ex);
         }
@@ -160,5 +164,13 @@ public class VendorServiceImpl implements VendorService {
     @Override
     public List<VendorResponseDTO> findByBranchName(String branchName) {
         throw new UnsupportedOperationException("Finding vendors by branch name is not yet implemented.");
+    }
+    @Override
+    public Page<VendorResponseDTO> getPaginated(Pageable pageable) {
+        Page<Vendor> vendorPage = repository.findAll(pageable);
+        List<VendorResponseDTO> dtoList = vendorPage.stream()
+                .map(vendor -> modelMapper.map(vendor, VendorResponseDTO.class))
+                .collect(Collectors.toList());
+        return new RestPageImpl<>(dtoList, pageable, vendorPage.getTotalElements());
     }
 }

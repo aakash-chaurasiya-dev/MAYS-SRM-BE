@@ -17,6 +17,12 @@ public class TicketDashboardResponseDTO {
     private Integer employeeId;
     private String employeeName;
 
+    private Integer vendorId;
+    private String vendorName;
+    private Integer vendorUserId;
+    private String vendorUserName;
+    private Integer parentTicketId;
+
     // Required by JPA and some serialization
     public TicketDashboardResponseDTO() {
     }
@@ -26,7 +32,8 @@ public class TicketDashboardResponseDTO {
     public TicketDashboardResponseDTO(Integer ticketId, String userFirstName, String userLastName,
             String deviceSerialNo, String branchName, String ticketStatusName,
             String departmentName, LocalDateTime createdDate, LocalDateTime targetDate, 
-            Integer employeeId, String employeeName) {
+            Integer employeeId, String employeeName,
+            Integer vendorId, String vendorName, Integer vendorUserId, String vendorUserName, Integer parentTicketId) {
         this.ticketId = ticketId;
         this.userFirstName = userFirstName != null ? userFirstName : "N/A";
         this.userLastName = userLastName != null ? userLastName : "";
@@ -38,6 +45,10 @@ public class TicketDashboardResponseDTO {
         this.targetDate = targetDate;
         this.employeeId = employeeId;
         this.employeeName = employeeName != null ? employeeName : "Unassigned";
-
+        this.vendorId = vendorId;
+        this.vendorName = vendorName;
+        this.vendorUserId = vendorUserId;
+        this.vendorUserName = vendorUserName;
+        this.parentTicketId = parentTicketId;
     }
 }

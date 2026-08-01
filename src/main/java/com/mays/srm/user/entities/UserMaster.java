@@ -44,6 +44,13 @@ public class UserMaster {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @ManyToOne
+    @JoinColumn(name = "vendor_id", nullable = false)
+    private Vendor vendor;
+
+    @Column(name = "referred_by", length = 150)
+    private String referredBy;
+
     public Integer getUserId() {
         return this.userId;
     }

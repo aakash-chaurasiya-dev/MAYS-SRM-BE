@@ -78,7 +78,15 @@ public class TicketAuditService {
         checkChange("priority", ticket.getPriority(), requestDTO.getPriority(), changes);
         checkChange("ticketDescription", ticket.getTicketDescription(), requestDTO.getTicketDescription(), changes);
         checkChange("emailId", ticket.getEmailId(), requestDTO.getEmailId(), changes);
-        checkChange("warrantyType", ticket.getWarrantyType(), requestDTO.getWarrantyType(), changes);
+        if (requestDTO.getWarrantyTypeId() != null) {
+            Integer oldWarrantyTypeId = ticket.getWarrantyType() != null ? ticket.getWarrantyType().getWarrantyTypeId() : null;
+            checkChange("warrantyTypeId", oldWarrantyTypeId, requestDTO.getWarrantyTypeId(), changes);
+        }
+        if (requestDTO.getReferredCategoryId() != null) {
+            Integer oldReferredCategoryId = ticket.getReferredCategory() != null ? ticket.getReferredCategory().getReferredCategoryId() : null;
+            checkChange("referredCategoryId", oldReferredCategoryId, requestDTO.getReferredCategoryId(), changes);
+        }
+        checkChange("referredCategoryDecriptionTicket", ticket.getReferredCategoryDecriptionTicket(), requestDTO.getReferredCategoryDecriptionTicket(), changes);
         checkChange("targetDate", ticket.getTargetDate(), requestDTO.getTargetDate(), changes);
         checkChange("closedDate", ticket.getClosedDate(), requestDTO.getClosedDate(), changes);
         
@@ -97,6 +105,19 @@ public class TicketAuditService {
         if (requestDTO.getDeviceSerialNo() != null) {
             String oldDeviceSerial = ticket.getDevice() != null ? ticket.getDevice().getSerialNo() : null;
             checkChange("deviceSerialNo", oldDeviceSerial, requestDTO.getDeviceSerialNo(), changes);
+        }
+
+        if (requestDTO.getVendorId() != null) {
+            Integer oldVendorId = ticket.getVendor() != null ? ticket.getVendor().getId() : null;
+            checkChange("vendorId", oldVendorId, requestDTO.getVendorId(), changes);
+        }
+        if (requestDTO.getVendorUserId() != null) {
+            Integer oldVendorUserId = ticket.getVendorUser() != null ? ticket.getVendorUser().getId() : null;
+            checkChange("vendorUserId", oldVendorUserId, requestDTO.getVendorUserId(), changes);
+        }
+        if (requestDTO.getParentTicketId() != null) {
+            Integer oldParentTicketId = ticket.getParentTicket() != null ? ticket.getParentTicket().getTicketId() : null;
+            checkChange("parentTicketId", oldParentTicketId, requestDTO.getParentTicketId(), changes);
         }
         if (requestDTO.getDeviceModelId() != null) {
             Integer oldDeviceModelId = (ticket.getDevice() != null && ticket.getDevice().getModel() != null) ? ticket.getDevice().getModel().getModelId() : null;

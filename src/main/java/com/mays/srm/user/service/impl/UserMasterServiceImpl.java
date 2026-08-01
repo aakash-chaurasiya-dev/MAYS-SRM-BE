@@ -4,7 +4,9 @@ import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.organization.entities.Branch;
 import com.mays.srm.user.entities.UserMaster;
+import com.mays.srm.user.entities.Vendor;
 import com.mays.srm.user.repository.UserMasterDao;
+import com.mays.srm.user.repository.VendorDao;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.user.service.EmployeeService;
@@ -27,14 +29,16 @@ public class UserMasterServiceImpl implements UserMasterService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
     private final EmployeeService employeeService;
+    private final VendorDao vendorDao;
 
     @Autowired
-    public UserMasterServiceImpl(UserMasterDao repository, BranchDao branchDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, EmployeeService employeeService) {
+    public UserMasterServiceImpl(UserMasterDao repository, BranchDao branchDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, EmployeeService employeeService, VendorDao vendorDao) {
         this.repository = repository;
         this.branchDao = branchDao;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
         this.employeeService = employeeService;
+        this.vendorDao = vendorDao;
     }
 
     @Override
@@ -50,6 +54,23 @@ public class UserMasterServiceImpl implements UserMasterService {
                     user.setBranch(branchOpt.get());
                 } else {
             //        throw new ResourceNotFoundException("Branch not found with ID: " + requestDTO.getBranchId());
+                }
+            }
+
+            // Resolve and set Vendor relation
+            if (requestDTO.getVendorId() != null) {
+                Optional<Vendor> vendorOpt = vendorDao.findById(requestDTO.getVendorId());
+                if (vendorOpt.isPresent()) {
+                    user.setVendor(vendorOpt.get());
+                } else {
+                    throw new ResourceNotFoundException("Vendor not found with ID: " + requestDTO.getVendorId());
+                }
+            } else {
+                Optional<Vendor> defaultVendorOpt = vendorDao.findById(1);
+                if (defaultVendorOpt.isPresent()) {
+                    user.setVendor(defaultVendorOpt.get());
+                } else {
+                    throw new ResourceNotFoundException("Default Vendor (ID 1) not found in database.");
                 }
             }
 
@@ -130,6 +151,20 @@ public class UserMasterServiceImpl implements UserMasterService {
                 existingUser.setBranch(null);
             }
 
+            if (requestDTO.getVendorId() != null) {
+                Optional<Vendor> vendorOpt = vendorDao.findById(requestDTO.getVendorId());
+                if (vendorOpt.isPresent()) {
+                    existingUser.setVendor(vendorOpt.get());
+                } else {
+                    throw new ResourceNotFoundException("Vendor not found with ID: " + requestDTO.getVendorId());
+                }
+            } else {
+                Optional<Vendor> defaultVendorOpt = vendorDao.findById(1);
+                if (defaultVendorOpt.isPresent()) {
+                    existingUser.setVendor(defaultVendorOpt.get());
+                }
+            }
+
             UserMaster updatedUser = repository.save(existingUser);
             return mapToResponseDTO(updatedUser);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
@@ -207,6 +242,11 @@ public class UserMasterServiceImpl implements UserMasterService {
         if (user.getBranch() != null) {
             dto.setBranchName(user.getBranch().getBranchName());
         }
+        if (user.getVendor() != null) {
+            dto.setVendorId(user.getVendor().getId());
+            dto.setVendorName(user.getVendor().getName());
+        }
+        dto.setReferredBy(user.getReferredBy());
         return dto;
     }
 }

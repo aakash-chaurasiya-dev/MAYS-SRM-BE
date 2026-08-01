@@ -15,6 +15,10 @@ public class UserMasterResponseDTO {
     private String role;
     private Boolean isActive;
 
+    private Integer vendorId;
+    private String vendorName;
+    private String referredBy;
+
     public String getBranchName() {
         return this.branchName;
     }

@@ -2,9 +2,11 @@ package com.mays.srm.user.service;
 
 import java.util.List;
 
-import com.mays.srm.user.dto.resDTO.VendorResponseDTO;
 import com.mays.srm.user.dto.reqDTO.VendorRequestDTO;
+import com.mays.srm.user.dto.resDTO.VendorResponseDTO;
 import com.mays.srm.core.service.GenericService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface VendorService extends GenericService<VendorRequestDTO,VendorResponseDTO, Integer> {
      // These methods can still return entities if they are used internally
@@ -13,4 +15,5 @@ public interface VendorService extends GenericService<VendorRequestDTO,VendorRes
     List<VendorResponseDTO> findByFirstName(String firstName);
     List<VendorResponseDTO> findByLastName(String lastName);
     List<VendorResponseDTO> findByBranchName(String branchName);
+    Page<VendorResponseDTO> getPaginated(Pageable pageable);
 }

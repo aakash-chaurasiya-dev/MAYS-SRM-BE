@@ -86,8 +86,8 @@ public class TicketServiceImpl implements TicketService {
             if (requestDTO.getEmailId() != null) {
                 ticket.setEmailId(requestDTO.getEmailId());
             }
-            if (requestDTO.getWarrantyType() != null) {
-                ticket.setWarrantyType(requestDTO.getWarrantyType());
+            if (requestDTO.getReferredCategoryDecriptionTicket() != null) {
+                ticket.setReferredCategoryDecriptionTicket(requestDTO.getReferredCategoryDecriptionTicket());
             }
             if (requestDTO.getPriority() != null) {
                 ticket.setPriority(requestDTO.getPriority());
@@ -191,8 +191,8 @@ public class TicketServiceImpl implements TicketService {
         if (requestDTO.getEmailId() != null) {
             ticket.setEmailId(requestDTO.getEmailId());
         }
-        if (requestDTO.getWarrantyType() != null) {
-            ticket.setWarrantyType(requestDTO.getWarrantyType());
+        if (requestDTO.getReferredCategoryDecriptionTicket() != null) {
+            ticket.setReferredCategoryDecriptionTicket(requestDTO.getReferredCategoryDecriptionTicket());
         }
         if (requestDTO.getTargetDate() != null) {
             ticket.setTargetDate(requestDTO.getTargetDate());
@@ -264,5 +264,10 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public List<TicketResponseDTO> getAllTicketsOfEmployee(int employeeId) {
         return ticketQueryService.getAllTicketsOfEmployee(employeeId);
+    }
+
+    @Override
+    public List<TicketResponseDTO> getAllTicketsOfVendor(Integer vendorId) {
+        return ticketQueryService.getAllTicketsOfVendor(vendorId);
     }
 }
