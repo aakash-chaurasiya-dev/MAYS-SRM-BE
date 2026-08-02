@@ -235,6 +235,13 @@ public class UserMasterServiceImpl implements UserMasterService {
         throw new UnsupportedOperationException("Finding users by branch name is not yet implemented.");
     }
 
+    @Override
+    public List<UserMasterResponseDTO> getByVendorId(Integer vendorId) {
+        return repository.findByVendor_Id(vendorId).stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
     // --- Helper Methods ---
 
     private UserMasterResponseDTO mapToResponseDTO(UserMaster user) {

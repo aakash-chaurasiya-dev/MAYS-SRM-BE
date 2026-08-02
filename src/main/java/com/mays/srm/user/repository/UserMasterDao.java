@@ -13,5 +13,6 @@ public interface UserMasterDao extends JpaRepository<UserMaster, Integer>, UserM
     Optional<UserMaster> findByEmailId(String emailId); // Fixed to return UserMaster and match entity field
     List<UserMaster> findByFirstName(String firstName); // Better as List since many users can have same first name
     List<UserMaster> findByLastName(String lastName); // Better as List
+    List<UserMaster> findByVendor_Id(Integer vendorId);
 }
 
