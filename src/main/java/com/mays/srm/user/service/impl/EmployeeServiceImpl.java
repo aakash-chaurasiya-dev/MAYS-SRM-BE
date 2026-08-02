@@ -15,6 +15,7 @@ import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.user.repository.VendorDao;
 import com.mays.srm.user.service.EmployeeService;
+import com.mays.srm.organization.util.DepartmentRoleResolver;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,7 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,18 +36,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final ModelMapper modelMapper;
     private final UserMasterDao userMasterDao;
     private final VendorDao vendorDao;
+    private final DepartmentRoleResolver departmentRoleResolver;
 
     // EmployeeSpecDao is no longer needed for explicit deletion due to cascade
     // private final EmployeeSpecDao employeeSpecDao;
 
     @Autowired
-    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, UserMasterDao userMasterDao, VendorDao vendorDao) {
+    public EmployeeServiceImpl(EmployeeDao repository, DepartmentDao departmentDao, PasswordEncoder passwordEncoder, ModelMapper modelMapper, UserMasterDao userMasterDao, VendorDao vendorDao, DepartmentRoleResolver departmentRoleResolver) {
         this.repository = repository;
         this.departmentDao = departmentDao;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
         this.userMasterDao = userMasterDao;
         this.vendorDao = vendorDao;
+        this.departmentRoleResolver = departmentRoleResolver;
     }
 
     @Override
@@ -65,7 +67,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             Employee savedEmployee = repository.save(employee);
             return mapToResponseDTO(savedEmployee);
-        } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
+        } catch (ResourceNotFoundException | DataIntegrityViolationException | BadRequestException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Employee", ex);
@@ -117,6 +119,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             Employee updatedEmployee = repository.save(existingEmployee);
             return mapToResponseDTO(updatedEmployee);
+        } catch (BadRequestException | ResourceNotFoundException | DataIntegrityViolationException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Employee", ex);
         }
@@ -215,23 +219,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void assignRoleBasedOnDepartment(Employee employee) {
-        if (employee.getDepartment() != null) {
-            String departmentName = employee.getDepartment().getDepartmentName();
-            
-            if ("Engineer".equalsIgnoreCase(departmentName)) {
-                employee.setRole("ROLE_ENGINEER");
-            } else if ("Purchase Team".equalsIgnoreCase(departmentName)) {
-                employee.setRole("ROLE_PURCHASE");
-            } else if ("Management".equalsIgnoreCase(departmentName)) {
-                employee.setRole("ROLE_MANAGER");
-            } else if ("Executive".equalsIgnoreCase(departmentName) || "Executive Team".equalsIgnoreCase(departmentName) || "Executives".equalsIgnoreCase(departmentName)) {
-                employee.setRole("ROLE_EXECUTIVE");
-            } else {
-                employee.setRole("ROLE_ADMIN");
-            }
-        } else {
-            throw new ResourceNotFoundException("Department not specified or not found.");
-        }
+        employee.setRole(departmentRoleResolver.resolveRole(employee.getDepartment()));
     }
 
     private EmployeeResponseDTO mapToResponseDTO(Employee employee) {

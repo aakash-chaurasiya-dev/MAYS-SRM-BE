@@ -1,13 +1,12 @@
 package com.mays.srm.organization.service.impl;
 import com.mays.srm.organization.repository.StatusDao;
-import com.mays.srm.organization.repository.DepartmentDao;
-import com.mays.srm.organization.entities.Department;
 import com.mays.srm.organization.dto.request.StatusRequestDTO;
 import com.mays.srm.organization.dto.resDTO.StatusResponseDTO;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.organization.service.StatusService;
+import com.mays.srm.organization.util.DepartmentRoleResolver;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,14 +22,15 @@ import java.util.Optional;
 public class StatusServiceImpl implements StatusService {
 
     private final StatusDao repository;
-    private final DepartmentDao departmentDao;
     private final ModelMapper modelMapper;
+    private final DepartmentRoleResolver departmentRoleResolver;
 
     @Autowired
-    public StatusServiceImpl(StatusDao repository, DepartmentDao departmentDao, ModelMapper modelMapper) {
+    public StatusServiceImpl(StatusDao repository, ModelMapper modelMapper,
+                             DepartmentRoleResolver departmentRoleResolver) {
         this.repository = repository;
-        this.departmentDao = departmentDao;
         this.modelMapper = modelMapper;
+        this.departmentRoleResolver = departmentRoleResolver;
     }
 
     @Override
@@ -75,10 +75,10 @@ public class StatusServiceImpl implements StatusService {
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Status not found with ID: " + id);
         }
-        
+
         Status existingStatus = existingOpt.get();
         modelMapper.map(requestDTO, existingStatus);
-        
+
         try {
             assignRoleFromDepartment(existingStatus);
             Status updatedStatus = repository.save(existingStatus);
@@ -120,36 +120,6 @@ public class StatusServiceImpl implements StatusService {
     }
 
     private void assignRoleFromDepartment(Status status) {
-        if (status.getAllowedDepartmentIds() != null && !status.getAllowedDepartmentIds().trim().isEmpty()) {
-            String[] idStrings = status.getAllowedDepartmentIds().split(",");
-            List<String> roles = new ArrayList<>();
-            for (String idStr : idStrings) {
-                try {
-                    Integer deptId = Integer.parseInt(idStr.trim());
-                    Optional<Department> deptOpt = departmentDao.findById(deptId);
-                    if (deptOpt.isPresent()) {
-                        String deptName = deptOpt.get().getDepartmentName().toUpperCase();
-                        if (deptName.contains("MANAGEMENT") || deptName.contains("MANAGER")) {
-                            if (!roles.contains("ROLE_MANAGER")) roles.add("ROLE_MANAGER");
-                        } else if (deptName.contains("ENGINEER")) {
-                            if (!roles.contains("ROLE_ENGINEER")) roles.add("ROLE_ENGINEER");
-                        } else if (deptName.contains("ADMIN")) {
-                            if (!roles.contains("ROLE_ADMIN")) roles.add("ROLE_ADMIN");
-                        } else if (deptName.contains("PURCHASE")) {
-                            if (!roles.contains("ROLE_PURCHASE")) roles.add("ROLE_PURCHASE");
-                        }
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            if (roles.isEmpty()) {
-                status.setAllowedRoles(null);
-            } else {
-                status.setAllowedRoles(String.join(",", roles));
-            }
-        } else {
-            status.setAllowedRoles(null);
-        }
+        status.setAllowedRoles(departmentRoleResolver.resolveAllowedRolesCsv(status.getAllowedDepartmentIds()));
     }
 }
-

@@ -6,6 +6,7 @@ public class DepartmentResponseDTO {
     private Integer departmentId;
     private String departmentName;
     private String departmentDescription;
+    private String defaultRole;
 
     private Boolean isLocked;
     private java.util.Date insertDate;
