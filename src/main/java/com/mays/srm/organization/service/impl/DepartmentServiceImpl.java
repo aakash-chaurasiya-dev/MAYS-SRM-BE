@@ -1,12 +1,13 @@
 package com.mays.srm.organization.service.impl;
-import com.mays.srm.user.entities.Employee;
 import com.mays.srm.organization.repository.DepartmentDao;
 import com.mays.srm.organization.dto.request.DepartmentRequestDTO;
 import com.mays.srm.organization.dto.resDTO.DepartmentResponseDTO;
 import com.mays.srm.organization.entities.Department;
+import com.mays.srm.exception.BadRequestException;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.organization.service.DepartmentService;
+import com.mays.srm.organization.util.DepartmentRoleResolver;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,20 +24,27 @@ public class DepartmentServiceImpl implements DepartmentService {
 
     private final DepartmentDao repository;
     private final ModelMapper modelMapper;
+    private final DepartmentRoleResolver departmentRoleResolver;
 
     @Autowired
-    public DepartmentServiceImpl(DepartmentDao repository, ModelMapper modelMapper) {
+    public DepartmentServiceImpl(DepartmentDao repository, ModelMapper modelMapper,
+                                 DepartmentRoleResolver departmentRoleResolver) {
         this.repository = repository;
         this.modelMapper = modelMapper;
+        this.departmentRoleResolver = departmentRoleResolver;
     }
 
     @Override
     @CacheEvict(value = "departments", allEntries = true)
     public DepartmentResponseDTO create(DepartmentRequestDTO requestDTO) {
         try {
+            departmentRoleResolver.validateKnownRole(requestDTO.getDefaultRole());
             Department department = modelMapper.map(requestDTO, Department.class);
+            department.setDefaultRole(requestDTO.getDefaultRole().trim());
             Department savedDepartment = repository.save(department);
             return modelMapper.map(savedDepartment, DepartmentResponseDTO.class);
+        } catch (BadRequestException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while creating Department", ex);
         }
@@ -71,13 +79,18 @@ public class DepartmentServiceImpl implements DepartmentService {
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Department not found with ID: " + id);
         }
-        
+
+        departmentRoleResolver.validateKnownRole(requestDTO.getDefaultRole());
+
         Department existingDepartment = existingOpt.get();
         modelMapper.map(requestDTO, existingDepartment);
-        
+        existingDepartment.setDefaultRole(requestDTO.getDefaultRole().trim());
+
         try {
             Department updatedDepartment = repository.save(existingDepartment);
             return modelMapper.map(updatedDepartment, DepartmentResponseDTO.class);
+        } catch (BadRequestException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new InternalServerException("Error occurred while updating Department", ex);
         }
@@ -103,4 +116,3 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
     }
 }
-

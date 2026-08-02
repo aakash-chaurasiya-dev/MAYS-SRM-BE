@@ -29,6 +29,9 @@ public class Department {
     @Column(name = "department_description")
     private String departmentDescription;
 
+    @Column(name = "default_role")
+    private String defaultRole;
+
     public Integer getDepartmentId() {
         return this.departmentId;
     }
