@@ -13,4 +13,5 @@ public interface UserMasterService extends GenericService<UserMasterRequestDTO,U
     List<UserMasterResponseDTO> findByFirstName(String firstName);
     List<UserMasterResponseDTO> findByLastName(String lastName);
     List<UserMasterResponseDTO> findByBranchName(String branchName);
+    List<UserMasterResponseDTO> getByVendorId(Integer vendorId);
 }

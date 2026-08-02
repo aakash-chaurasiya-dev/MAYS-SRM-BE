@@ -1,4 +1,5 @@
 package com.mays.srm.user.controller;
+import com.mays.srm.security.util.SecurityUtils;
 import com.mays.srm.user.dto.reqDTO.UserMasterRequestDTO;
 import com.mays.srm.user.dto.resDTO.UserMasterResponseDTO;
 import com.mays.srm.user.service.UserMasterService;
@@ -17,6 +18,7 @@ public class UserMasterController {
 
     @PostMapping
     public ResponseEntity<UserMasterResponseDTO> createUser(@RequestBody UserMasterRequestDTO requestDTO) {
+        SecurityUtils.getCurrentVendorId().ifPresent(requestDTO::setVendorId);
         UserMasterResponseDTO responseDTO = userService.create(requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
@@ -31,6 +33,12 @@ public class UserMasterController {
     public ResponseEntity<List<UserMasterResponseDTO>> getAllUsers() {
         List<UserMasterResponseDTO> responseDTOs = userService.getAll();
         return ResponseEntity.ok(responseDTOs);
+    }
+
+    @GetMapping("/vendor/{vendorId}")
+    public ResponseEntity<List<UserMasterResponseDTO>> getUsersByVendorId(@PathVariable Integer vendorId) {
+        SecurityUtils.requireVendorAccess(vendorId);
+        return ResponseEntity.ok(userService.getByVendorId(vendorId));
     }
 
     @PutMapping("/{id}")
