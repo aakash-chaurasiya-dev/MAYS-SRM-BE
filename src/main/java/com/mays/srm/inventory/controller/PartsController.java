@@ -21,6 +21,11 @@ public class PartsController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("/ticket/{ticketId}")
+    public ResponseEntity<List<PartsResponseDTO>> getPartsByTicketId(@PathVariable Integer ticketId) {
+        return ResponseEntity.ok(partsService.getByTicketId(ticketId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PartsResponseDTO> getPartById(@PathVariable Integer id) {
         PartsResponseDTO responseDTO = partsService.getById(id);

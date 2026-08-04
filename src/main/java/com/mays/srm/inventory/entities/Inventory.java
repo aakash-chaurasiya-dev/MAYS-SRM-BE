@@ -1,5 +1,4 @@
 package com.mays.srm.inventory.entities;
-import com.mays.srm.device.entities.Brand;
 import com.mays.srm.device.entities.DeviceType;
 import com.mays.srm.organization.entities.Branch;
 import jakarta.persistence.*;
@@ -24,13 +23,12 @@ public class Inventory {
     @Column(name = "product_name")
     private String productName;
 
+    @Column(name = "sku")
+    private String sku;
+
     @ManyToOne
     @JoinColumn(name = "device_type")
     private DeviceType deviceType;
-
-    @ManyToOne
-    @JoinColumn(name = "brand_id")
-    private Brand brand;
 
     @Column(name = "specification", columnDefinition = "TEXT")
     private String specification;
@@ -45,11 +43,20 @@ public class Inventory {
     private BigDecimal buyingPrice;
 
     @Column(name = "stock")
-    private Integer stock;
+    private Integer stock = 0;
+
+    @Column(name = "min_stock")
+    private Integer minStock;
+
+    @Column(name = "hsn_code")
+    private String hsnCode;
 
     @ManyToOne
     @JoinColumn(name = "branch_id")
     private Branch branch;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 
     @UpdateTimestamp
     @Column(name = "last_updation_date")
