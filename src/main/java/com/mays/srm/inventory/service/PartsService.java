@@ -3,5 +3,8 @@ import com.mays.srm.core.service.GenericService;
 import com.mays.srm.inventory.dto.request.PartsRequestDTO;
 import com.mays.srm.inventory.dto.resDTO.PartsResponseDTO;
 
+import java.util.List;
+
 public interface PartsService extends GenericService<PartsRequestDTO, PartsResponseDTO, Integer> {
+    List<PartsResponseDTO> getByTicketId(Integer ticketId);
 }

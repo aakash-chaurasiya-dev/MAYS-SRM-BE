@@ -1,9 +1,12 @@
 package com.mays.srm.inventory.entities;
+import com.mays.srm.inventory.enums.PartSource;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.organization.entities.Status;
+import com.mays.srm.user.entities.Vendor;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -37,8 +40,22 @@ public class Parts {
     @JoinColumn(name = "status_id")
     private Status status;
 
-    @Column(name = "returned")
-    private Boolean returned;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", length = 20)
+    private PartSource source;
+
+    @ManyToOne
+    @JoinColumn(name = "vendor_id")
+    private Vendor vendor;
+
+    @Column(name = "unit_cost")
+    private BigDecimal unitCost;
+
+    @Column(name = "defective_returned")
+    private Boolean defectiveReturned = false;
+
+    @Column(name = "customer_approved")
+    private Boolean customerApproved;
 
     @CreationTimestamp
     @Column(name = "order_date", updatable = false)
@@ -47,9 +64,16 @@ public class Parts {
     @Column(name = "receive_date")
     private LocalDateTime receiveDate;
 
+    @Column(name = "used_date")
+    private LocalDateTime usedDate;
+
+    @Column(name = "return_date")
+    private LocalDateTime returnDate;
+
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
 
-    @Column(name = "in_stock")
-    private Boolean inStock = false;
+    /** True once STOCK_IN receive or STOCK_OUT consume has been applied to inventory. */
+    @Column(name = "stock_applied")
+    private Boolean stockApplied = false;
 }

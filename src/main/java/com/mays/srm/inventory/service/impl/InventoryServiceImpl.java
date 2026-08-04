@@ -1,13 +1,11 @@
 package com.mays.srm.inventory.service.impl;
-import com.mays.srm.billing.entities.Billing;
+import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.device.repository.DeviceTypeDao;
 import com.mays.srm.organization.repository.BranchDao;
 import com.mays.srm.inventory.repository.InventoryDao;
 import com.mays.srm.inventory.dto.request.InventoryRequestDTO;
 import com.mays.srm.inventory.dto.resDTO.InventoryResponseDTO;
 import com.mays.srm.organization.entities.Branch;
-import com.mays.srm.device.entities.Brand;
-import com.mays.srm.device.entities.DeviceType;
-import com.mays.srm.device.repository.BrandDao;
 import com.mays.srm.inventory.entities.Inventory;
 import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
@@ -27,15 +25,20 @@ import java.util.Optional;
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryDao repository;
-    private final BrandDao brandDao;
     private final BranchDao branchDao;
+    private final DeviceTypeDao deviceTypeDao;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public InventoryServiceImpl(InventoryDao repository, BrandDao brandDao, BranchDao branchDao, ModelMapper modelMapper) {
+    public InventoryServiceImpl(
+            InventoryDao repository,
+            BranchDao branchDao,
+            DeviceTypeDao deviceTypeDao,
+            ModelMapper modelMapper
+    ) {
         this.repository = repository;
-        this.brandDao = brandDao;
         this.branchDao = branchDao;
+        this.deviceTypeDao = deviceTypeDao;
         this.modelMapper = modelMapper;
     }
 
@@ -44,6 +47,12 @@ public class InventoryServiceImpl implements InventoryService {
     public InventoryResponseDTO create(InventoryRequestDTO requestDTO) {
         try {
             Inventory inventory = modelMapper.map(requestDTO, Inventory.class);
+            if (inventory.getStock() == null) {
+                inventory.setStock(0);
+            }
+            if (inventory.getIsActive() == null) {
+                inventory.setIsActive(true);
+            }
             validateAndSetRelations(inventory, requestDTO);
             
             Inventory savedInventory = repository.save(inventory);
@@ -87,10 +96,13 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory existingInventory = existingOpt.get();
         modelMapper.map(requestDTO, existingInventory);
         
-        existingInventory.setProductId(id); // Ensure ID is not changed
+        existingInventory.setProductId(id);
 
         try {
             validateAndSetRelations(existingInventory, requestDTO);
+            if (existingInventory.getIsActive() == null) {
+                existingInventory.setIsActive(true);
+            }
             Inventory updatedInventory = repository.save(existingInventory);
             return mapToResponseDTO(updatedInventory);
         } catch (ResourceNotFoundException | DataIntegrityViolationException ex) {
@@ -116,28 +128,15 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private void validateAndSetRelations(Inventory inventory, InventoryRequestDTO requestDTO) {
-        // Set Brand and derive DeviceType from it
-        if (requestDTO.getBrandId() != null) {
-            Optional<Brand> brandOpt = brandDao.findById(requestDTO.getBrandId());
-            if (brandOpt.isPresent()) {
-                Brand brand = brandOpt.get();
-                inventory.setBrand(brand);
-                // Automatically set the DeviceType from the Brand
-                if (brand.getDeviceType() != null) {
-                    inventory.setDeviceType(brand.getDeviceType());
-                } else {
-                    // This case might indicate a data integrity issue (a brand should have a device type)
-                    inventory.setDeviceType(null);
-                }
-            } else {
-                throw new ResourceNotFoundException("Brand not found with ID: " + requestDTO.getBrandId());
-            }
+        if (requestDTO.getDeviceTypeId() != null) {
+            DeviceType deviceType = deviceTypeDao.findById(requestDTO.getDeviceTypeId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Device type not found with ID: " + requestDTO.getDeviceTypeId()));
+            inventory.setDeviceType(deviceType);
         } else {
-            inventory.setBrand(null);
             inventory.setDeviceType(null);
         }
 
-        // Set Branch
         if (requestDTO.getBranchId() != null) {
             Optional<Branch> branchOpt = branchDao.findById(requestDTO.getBranchId());
             if (branchOpt.isPresent()) {
@@ -152,17 +151,14 @@ public class InventoryServiceImpl implements InventoryService {
 
     private InventoryResponseDTO mapToResponseDTO(Inventory inventory) {
         InventoryResponseDTO dto = modelMapper.map(inventory, InventoryResponseDTO.class);
-        
         if (inventory.getDeviceType() != null) {
+            dto.setDeviceTypeId(inventory.getDeviceType().getDeviceTypeId());
             dto.setDeviceTypeName(inventory.getDeviceType().getDeviceTypeName());
         }
-        if (inventory.getBrand() != null) {
-            dto.setBrandName(inventory.getBrand().getBrandName());
-        }
         if (inventory.getBranch() != null) {
+            dto.setBranchId(inventory.getBranch().getBranchId());
             dto.setBranchName(inventory.getBranch().getBranchName());
         }
         return dto;
     }
 }
-

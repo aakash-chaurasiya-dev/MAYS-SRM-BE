@@ -7,13 +7,18 @@ import java.time.LocalDateTime;
 public class InventoryResponseDTO {
     private Integer productId;
     private String productName;
+    private String sku;
+    private Integer deviceTypeId;
     private String deviceTypeName;
-    private String brandName;
     private String specification;
     private String descr;
     private BigDecimal sellingPrice;
     private BigDecimal buyingPrice;
     private Integer stock;
+    private Integer minStock;
+    private String hsnCode;
+    private Integer branchId;
     private String branchName;
-    private LocalDateTime lastUpdationDate; // Added
+    private Boolean isActive;
+    private LocalDateTime lastUpdationDate;
 }
