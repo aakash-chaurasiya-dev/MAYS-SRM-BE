@@ -1,20 +1,18 @@
-package com.mays.srm.ticket.repository;
+package com.mays.srm.timetracking.repository;
+
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.mays.srm.ticket.entities.TicketTimeTracking;
-import java.util.List;
+import com.mays.srm.timetracking.entities.TicketTimeTracking;
 
 @Repository
 public interface TicketTimeTrackingRepository extends JpaRepository<TicketTimeTracking, Long> {
-    
-    // Find active tracking records for a specific ticket
+
     List<TicketTimeTracking> findByTicketTicketIdAndIsActiveTrue(Integer ticketId);
-    
-    // Find all tracking records for a specific ticket
+
     List<TicketTimeTracking> findByTicketTicketId(Integer ticketId);
-    
-    // Find all tracking records for an assignee
+
     List<TicketTimeTracking> findByAssigneeEmployeeId(Integer employeeId);
 }

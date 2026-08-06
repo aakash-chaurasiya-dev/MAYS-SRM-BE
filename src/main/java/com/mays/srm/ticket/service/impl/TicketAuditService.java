@@ -9,6 +9,8 @@ import com.mays.srm.organization.entities.Status;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.entities.TicketLogs;
 import com.mays.srm.exception.ResourceNotFoundException;
+import com.mays.srm.security.util.SecurityUtils;
+import com.mays.srm.timetracking.util.StatusAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -174,6 +176,87 @@ public class TicketAuditService {
 
             ticket.setModNo((ticket.getModNo() == null ? 0 : ticket.getModNo()) + 1);
             ticketLogsDao.save(log);
+        }
+    }
+
+    /**
+     * Logs the initial creation of a ticket (null → initial values). Does not mutate ticket relations.
+     */
+    public void logTicketCreated(Ticket savedTicket, TicketRequestDTO requestDTO) {
+        Map<String, Map<String, Object>> changes = new HashMap<>();
+
+        if (savedTicket.getTicketStatus() != null) {
+            checkChange("ticketStatusId", null, savedTicket.getTicketStatus().getStatusId(), changes);
+        } else if (requestDTO.getTicketStatusId() != null) {
+            checkChange("ticketStatusId", null, requestDTO.getTicketStatusId(), changes);
+        }
+        if (savedTicket.getEmployee() != null) {
+            checkChange("assigneeEmployeeId", null, savedTicket.getEmployee().getEmployeeId(), changes);
+        } else if (requestDTO.getEmployeeId() != null) {
+            checkChange("assigneeEmployeeId", null, requestDTO.getEmployeeId(), changes);
+        }
+
+        checkChange("priority", null, requestDTO.getPriority(), changes);
+        checkChange("ticketDescription", null, requestDTO.getTicketDescription(), changes);
+        checkChange("emailId", null, requestDTO.getEmailId(), changes);
+        checkChange("warrantyTypeId", null, requestDTO.getWarrantyTypeId(), changes);
+        checkChange("referredCategoryId", null, requestDTO.getReferredCategoryId(), changes);
+        checkChange("referredCategoryDecriptionTicket", null, requestDTO.getReferredCategoryDecriptionTicket(), changes);
+        checkChange("targetDate", null, requestDTO.getTargetDate(), changes);
+        checkChange("closedDate", null, requestDTO.getClosedDate(), changes);
+        checkChange("ticketBranchId", null, requestDTO.getTicketBranchId(), changes);
+        checkChange("ticketTypeId", null, requestDTO.getTicketTypeId(), changes);
+        checkChange("userRefNo", null, requestDTO.getUserRefNo(), changes);
+        checkChange("deviceSerialNo", null, requestDTO.getDeviceSerialNo(), changes);
+        checkChange("vendorId", null, requestDTO.getVendorId(), changes);
+        checkChange("vendorUserId", null, requestDTO.getVendorUserId(), changes);
+        checkChange("parentTicketId", null, requestDTO.getParentTicketId(), changes);
+        checkChange("deviceModelId", null, requestDTO.getDeviceModelId(), changes);
+        checkChange("brandId", null, requestDTO.getBrandId(), changes);
+        checkChange("customModelName", null, requestDTO.getCustomModelName(), changes);
+
+        TicketLogs log = new TicketLogs();
+        log.setTicket(savedTicket);
+        log.setModificationDate(LocalDateTime.now());
+        log.setOldStatus(null);
+        log.setNewStatus(savedTicket.getTicketStatus());
+        log.setAssignorEmployee(null);
+        log.setAssigneeEmployee(savedTicket.getEmployee());
+        log.setAssignorRemarks(buildCreationRemarks(requestDTO));
+        resolveModifiedBy(log, requestDTO);
+
+        try {
+            String changedFieldsJson = changes.isEmpty() ? null : objectMapper.writeValueAsString(changes);
+            log.setChangedFields(changedFieldsJson);
+        } catch (Exception e) {
+            // Should not happen with Map serialization
+        }
+
+        savedTicket.setModNo(1);
+        ticketLogsDao.save(log);
+    }
+
+    private String buildCreationRemarks(TicketRequestDTO requestDTO) {
+        String remarks = requestDTO.getRemarks();
+        return SecurityUtils.getCurrentUser()
+                .filter(user -> "ROLE_VENDOR".equals(user.getAuthorities().iterator().next().getAuthority()))
+                .map(user -> {
+                    String prefix = "Created by vendor: " + user.getName();
+                    if (remarks != null && !remarks.trim().isEmpty()) {
+                        return prefix + " | " + remarks.trim();
+                    }
+                    return prefix;
+                })
+                .orElse(remarks);
+    }
+
+    private void resolveModifiedBy(TicketLogs log, TicketRequestDTO requestDTO) {
+        Integer employeeId = requestDTO.getModifiedByEmployeeId();
+        if (employeeId == null) {
+            employeeId = StatusAccessValidator.getCurrentEmployeeId();
+        }
+        if (employeeId != null) {
+            employeeDao.findById(employeeId).ifPresent(log::setModifiedBy);
         }
     }
 }

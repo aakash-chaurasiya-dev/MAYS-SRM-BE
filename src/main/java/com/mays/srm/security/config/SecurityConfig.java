@@ -150,8 +150,9 @@ public class SecurityConfig {
                                                                 "/api/charge-types/**",
                                                                 "/api/payment-modes/**",
                                                                 "/api/service-charges/**",
-                                                                "/api/statuses/**")
-                                                .hasAnyRole("MANAGER", "EXECUTIVE")
+                                                                "/api/statuses/**",
+                                                                "/api/sla-policies/**")
+                                                .hasAnyRole("MANAGER", "EXECUTIVE","ADMIN","PURCHASE","ENGINEER")
 
                                                 // 3. TICKETS, DEVICES, BRANCHES, STATUSES: Accessible by Manager,
                                                 // Purchase, Engineer, Admin, and Executive
