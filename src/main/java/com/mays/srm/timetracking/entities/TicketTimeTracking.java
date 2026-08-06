@@ -1,6 +1,9 @@
-package com.mays.srm.ticket.entities;
+package com.mays.srm.timetracking.entities;
 
 import java.time.LocalDateTime;
+
+import com.mays.srm.ticket.entities.Ticket;
+import com.mays.srm.user.entities.Employee;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,7 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.mays.srm.user.entities.Employee;
 
 @Entity
 @Table(name = "ticket_time_tracking")

@@ -12,6 +12,7 @@ public class StatusResponseDTO {
     private String statusType;
     private String allowedDepartmentIds;
     private String allowedRoles;
+    private String slaTimerAction;
 
     private Boolean isLocked;
     private java.util.Date insertDate;

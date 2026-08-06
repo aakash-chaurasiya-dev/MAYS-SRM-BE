@@ -1,6 +1,8 @@
-package com.mays.srm.ticket.dto.resDTO;
+package com.mays.srm.timetracking.dto.resDTO;
 
 import java.time.LocalDateTime;
+
+import com.mays.srm.timetracking.enums.HoldRequestStatus;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,4 +21,5 @@ public class TicketTimeTrackingResponseDTO {
     private Boolean isActive;
     private Integer targetMinutes;
     private Boolean isCrossedTAT;
+    private Boolean isTimerPaused;
 }

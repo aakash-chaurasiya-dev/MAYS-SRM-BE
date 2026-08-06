@@ -9,4 +9,5 @@ public class StatusRequestDTO {
     private String statusType;
     private String allowedDepartmentIds;
     private String allowedRoles;
+    private String slaTimerAction;
 }

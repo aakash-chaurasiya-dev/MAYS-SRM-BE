@@ -22,6 +22,7 @@ import com.mays.srm.ticket.repository.ReferredCategoryDao;
 import com.mays.srm.ticket.repository.WarrantyTypeDao;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.exception.BadRequestException;
+import com.mays.srm.timetracking.util.StatusAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -84,6 +85,7 @@ public class TicketValidationService {
             Optional<Status> statusOpt = statusDao.findById(requestDTO.getTicketStatusId());
             if (statusOpt.isPresent()) {
                 if ("TICKET".equalsIgnoreCase(statusOpt.get().getStatusType())) {
+                    StatusAccessValidator.validateStatusAccess(statusOpt.get());
                     ticket.setTicketStatus(statusOpt.get());
                 } else {
                     throw new ResourceNotFoundException(

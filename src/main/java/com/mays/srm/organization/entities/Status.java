@@ -36,6 +36,9 @@ public class Status {
     @Column(name = "allowed_roles")
     private String allowedRoles;
 
+    @Column(name = "sla_timer_action", length = 30)
+    private String slaTimerAction = "NONE";
+
     @org.hibernate.annotations.CreationTimestamp
     @jakarta.persistence.Column(name = "insert_date", updatable = false)
     private java.util.Date insertDate;

@@ -1,6 +1,7 @@
 package com.mays.srm.ticket.controller;
 
 import com.mays.srm.security.util.SecurityUtils;
+import com.mays.srm.timetracking.util.StatusAccessValidator;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.entities.TicketAttachment;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardTicketStatsResponseDTO;
@@ -36,6 +37,10 @@ public class TicketController {
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody TicketRequestDTO requestDTO) {
         SecurityUtils.getCurrentVendorId().ifPresent(requestDTO::setVendorId);
+        Integer employeeId = StatusAccessValidator.getCurrentEmployeeId();
+        if (employeeId != null) {
+            requestDTO.setModifiedByEmployeeId(employeeId);
+        }
         TicketResponseDTO responseDTO = ticketService.create(requestDTO);
         return ResponseEntity.ok(responseDTO);
     }

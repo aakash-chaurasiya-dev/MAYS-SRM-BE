@@ -11,10 +11,11 @@ import com.mays.srm.exception.InternalServerException;
 import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.ticket.service.TicketAccessoriesService;
 import com.mays.srm.ticket.service.TicketService;
-import com.mays.srm.ticket.service.TicketTimeTrackingService;
+import com.mays.srm.timetracking.integration.TicketTimeTrackingFacade;
 import com.mays.srm.notification.service.NotificationService;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.user.entities.Employee;
+import com.mays.srm.security.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -41,7 +42,7 @@ public class TicketServiceImpl implements TicketService {
     private final TicketAuditService ticketAuditService;
     private final TicketBillingService ticketBillingService;
     private final TicketAccessoriesService ticketAccessoriesService;
-    private final TicketTimeTrackingService ticketTimeTrackingService;
+    private final TicketTimeTrackingFacade ticketTimeTrackingFacade;
     private final NotificationService notificationService;
 
     @Autowired
@@ -53,7 +54,7 @@ public class TicketServiceImpl implements TicketService {
             TicketAuditService ticketAuditService,
             TicketBillingService ticketBillingService,
             TicketAccessoriesService ticketAccessoriesService,
-            TicketTimeTrackingService ticketTimeTrackingService,
+            TicketTimeTrackingFacade ticketTimeTrackingFacade,
             NotificationService notificationService) {
         this.repository = repository;
         this.ticketQueryService = ticketQueryService;
@@ -63,7 +64,7 @@ public class TicketServiceImpl implements TicketService {
         this.ticketAuditService = ticketAuditService;
         this.ticketBillingService = ticketBillingService;
         this.ticketAccessoriesService = ticketAccessoriesService;
-        this.ticketTimeTrackingService = ticketTimeTrackingService;
+        this.ticketTimeTrackingFacade = ticketTimeTrackingFacade;
         this.notificationService = notificationService;
     }
 
@@ -71,6 +72,10 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public TicketResponseDTO create(TicketRequestDTO requestDTO) {
         try {
+            if (SecurityUtils.getCurrentVendorId().isPresent()) {
+                requestDTO.setTicketStatusId(3); // Registered for vendor-created tickets
+            }
+
             Ticket ticket = new Ticket();
 
             // Set relationships from IDs
@@ -100,10 +105,13 @@ public class TicketServiceImpl implements TicketService {
             }
 
             Ticket savedTicket = repository.save(ticket);
+            ticketAuditService.logTicketCreated(savedTicket, requestDTO);
+            savedTicket = repository.save(savedTicket);
+
             ticketBillingService.ensureFinalChargeExists(savedTicket);
 
             // Handle Time Tracking for new ticket
-            ticketTimeTrackingService.startTrackingForNewTicket(savedTicket);
+            ticketTimeTrackingFacade.onTicketCreated(savedTicket);
 
             if (requestDTO.getAccessoryIds() != null) {
                 ticketAccessoriesService.syncAccessories(savedTicket, requestDTO.getAccessoryIds());
@@ -208,9 +216,7 @@ public class TicketServiceImpl implements TicketService {
         Ticket updatedTicket = repository.save(ticket);
         ticketBillingService.ensureFinalChargeExists(updatedTicket);
 
-        // Handle Time Tracking updates
-        System.out.println("are we coming here 009");
-        ticketTimeTrackingService.handleTrackingUpdates(updatedTicket, oldStatus, oldAssignee);
+        ticketTimeTrackingFacade.onTicketUpdated(updatedTicket, oldStatus, oldAssignee, requestDTO.getRemarks());
 
         if (requestDTO.getAccessoryIds() != null) {
             ticketAccessoriesService.syncAccessories(updatedTicket, requestDTO.getAccessoryIds());
