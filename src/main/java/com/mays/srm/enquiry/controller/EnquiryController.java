@@ -1,12 +1,16 @@
 package com.mays.srm.enquiry.controller;
 import com.mays.srm.enquiry.dto.request.EnquiryRequestDTO;
+import com.mays.srm.enquiry.dto.resDTO.EnquiryPendingCountDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryResponseDTO;
 import com.mays.srm.enquiry.service.EnquiryService;
+import com.mays.srm.security.core.CustomUserDetails;
+import com.mays.srm.security.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/enquiries")
@@ -19,6 +23,20 @@ public class EnquiryController {
     public ResponseEntity<EnquiryResponseDTO> createEnquiry(@RequestBody EnquiryRequestDTO requestDTO) {
         EnquiryResponseDTO responseDTO = enquiryService.create(requestDTO);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/pending/count")
+    public ResponseEntity<EnquiryPendingCountDTO> getPendingCount() {
+        Optional<CustomUserDetails> currentUser = SecurityUtils.getCurrentUser();
+        if (currentUser.isPresent() && isPortalUser(currentUser.get())) {
+            return ResponseEntity.ok(enquiryService.getPendingCountForUser(currentUser.get().getUserId()));
+        }
+        return ResponseEntity.ok(enquiryService.getPendingCountAll());
+    }
+
+    private boolean isPortalUser(CustomUserDetails user) {
+        String role = user.getAuthorities().iterator().next().getAuthority();
+        return "ROLE_USER".equals(role) || "ROLE_VENDOR".equals(role);
     }
 
     @GetMapping("/{id}")

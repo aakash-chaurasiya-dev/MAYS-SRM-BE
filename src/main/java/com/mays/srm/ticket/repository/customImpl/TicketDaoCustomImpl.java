@@ -15,7 +15,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class TicketDaoCustomImpl implements TicketDaoCustom {
@@ -73,11 +76,38 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
                 "LEFT JOIN e.department dept " +
                 "GROUP BY dept.departmentName";
 
-        TypedQuery<TicketDashboardDepartmentTicketCountDTO> q = 
+        TypedQuery<TicketDashboardDepartmentTicketCountDTO> q =
                 entityManager.createQuery(statsQuery, TicketDashboardDepartmentTicketCountDTO.class);
-        
-        List<TicketDashboardDepartmentTicketCountDTO> departmentCounts = q.getResultList();
 
+        Map<String, Long> countByDept = new HashMap<>();
+        long unassignedCount = 0L;
+        for (TicketDashboardDepartmentTicketCountDTO row : q.getResultList()) {
+            if (row.getDepartmentName() == null) {
+                unassignedCount = row.getTicketCount() != null ? row.getTicketCount() : 0L;
+            } else {
+                countByDept.put(row.getDepartmentName(),
+                        row.getTicketCount() != null ? row.getTicketCount() : 0L);
+            }
+        }
+
+        // GROUP BY only returns departments that already have assigned tickets.
+        // Load every department from master data and fill missing counts with 0.
+        List<String> allDepartments = entityManager
+                .createQuery("SELECT d.departmentName FROM Department d ORDER BY d.departmentName", String.class)
+                .getResultList();
+
+        List<TicketDashboardDepartmentTicketCountDTO> departmentCounts = new ArrayList<>();
+        for (String departmentName : allDepartments) {
+            if (departmentName == null || departmentName.isBlank()) {
+                continue;
+            }
+            departmentCounts.add(new TicketDashboardDepartmentTicketCountDTO(
+                    departmentName, countByDept.getOrDefault(departmentName, 0L)));
+        }
+        if (unassignedCount > 0) {
+            departmentCounts.add(new TicketDashboardDepartmentTicketCountDTO("Unassigned", unassignedCount));
+        }
+        System.out.println("departmentCounts: " + departmentCounts);
         Query countQ = entityManager.createQuery("SELECT COUNT(t) FROM Ticket t");
         long total = (Long) countQ.getSingleResult();
 
