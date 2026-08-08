@@ -2,6 +2,7 @@ package com.mays.srm.enquiry.service.impl;
 import com.mays.srm.enquiry.repository.EnquiryDao;
 import com.mays.srm.organization.repository.StatusDao;
 import com.mays.srm.enquiry.dto.request.EnquiryRequestDTO;
+import com.mays.srm.enquiry.dto.resDTO.EnquiryPendingCountDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryResponseDTO;
 import com.mays.srm.device.entities.Brand;
 import com.mays.srm.device.repository.BrandDao;
@@ -14,6 +15,8 @@ import com.mays.srm.exception.ResourceNotFoundException;
 import com.mays.srm.enquiry.service.EnquiryService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +44,7 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    @CacheEvict(value = "enquiries", allEntries = true)
     public EnquiryResponseDTO create(EnquiryRequestDTO requestDTO) {
         try {
             Enquiry enquiry = modelMapper.map(requestDTO, Enquiry.class);
@@ -57,6 +61,7 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    @Cacheable(value = "enquiries", key = "#id")
     public EnquiryResponseDTO getById(Integer id) {
         Optional<Enquiry> enquiryOpt = repository.findById(id);
         if (enquiryOpt.isPresent()) {
@@ -67,6 +72,7 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    @Cacheable(value = "enquiries", key = "'all'")
     public List<EnquiryResponseDTO> getAll() {
         List<Enquiry> enquiryList = repository.findAll();
         List<EnquiryResponseDTO> dtoList = new ArrayList<>();
@@ -77,6 +83,7 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    @CacheEvict(value = "enquiries", allEntries = true)
     public EnquiryResponseDTO update(Integer id, EnquiryRequestDTO requestDTO) {
         Optional<Enquiry> existingOpt = repository.findById(id);
         if (existingOpt.isEmpty()) {
@@ -99,6 +106,7 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    @Cacheable(value = "enquiries", key = "'user-' + #userId")
     public List<EnquiryResponseDTO> getAllEnquiriesOfUser(Integer userId) {
         List<Enquiry> enquiryList = repository.findByUserUserId(userId);
         List<EnquiryResponseDTO> dtoList = new ArrayList<>();
@@ -109,6 +117,19 @@ public class EnquiryServiceImpl implements EnquiryService {
     }
 
     @Override
+    @Cacheable(value = "enquiries", key = "'pending-count-all'")
+    public EnquiryPendingCountDTO getPendingCountAll() {
+        return new EnquiryPendingCountDTO(repository.countPendingEnquiries());
+    }
+
+    @Override
+    @Cacheable(value = "enquiries", key = "'pending-count-user-' + #userId")
+    public EnquiryPendingCountDTO getPendingCountForUser(Integer userId) {
+        return new EnquiryPendingCountDTO(repository.countPendingEnquiriesByUser(userId));
+    }
+
+    @Override
+    @CacheEvict(value = "enquiries", allEntries = true)
     public void delete(Integer id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Cannot delete. Enquiry not found with ID: " + id);
@@ -191,4 +212,3 @@ public class EnquiryServiceImpl implements EnquiryService {
         return dto;
     }
 }
-

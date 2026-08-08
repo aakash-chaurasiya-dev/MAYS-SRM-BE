@@ -157,7 +157,6 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    @Cacheable(value = "tickets", key = "'dashboardStats'")
     public TicketDashboardTicketStatsResponseDTO getDashboardTicketStats() {
         return ticketQueryService.getDashboardTicketStats();
     }

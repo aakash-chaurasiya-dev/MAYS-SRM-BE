@@ -115,6 +115,8 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/tickets/*")
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .requestMatchers(HttpMethod.GET, "/api/enquiries/pending/count")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/enquiries/user/**")
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE")
                                                 .requestMatchers(HttpMethod.POST, "/api/enquiries")
