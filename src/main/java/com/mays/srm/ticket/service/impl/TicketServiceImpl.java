@@ -30,6 +30,7 @@ import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 public class TicketServiceImpl implements TicketService {
@@ -99,6 +100,8 @@ public class TicketServiceImpl implements TicketService {
             }
             if (requestDTO.getTargetDate() != null) {
                 ticket.setTargetDate(requestDTO.getTargetDate());
+            } else {
+                ticket.setTargetDate(LocalDateTime.now().plusDays(3).withHour(18).withMinute(0).withSecond(0).withNano(0));
             }
             if (requestDTO.getClosedDate() != null) {
                 ticket.setClosedDate(requestDTO.getClosedDate());
