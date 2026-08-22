@@ -15,11 +15,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Repository
 public class TicketDaoCustomImpl implements TicketDaoCustom {
 
@@ -107,7 +109,7 @@ public class TicketDaoCustomImpl implements TicketDaoCustom {
         if (unassignedCount > 0) {
             departmentCounts.add(new TicketDashboardDepartmentTicketCountDTO("Unassigned", unassignedCount));
         }
-        System.out.println("departmentCounts: " + departmentCounts);
+        log.debug("departmentCounts: {}", departmentCounts);
         Query countQ = entityManager.createQuery("SELECT COUNT(t) FROM Ticket t");
         long total = (Long) countQ.getSingleResult();
 

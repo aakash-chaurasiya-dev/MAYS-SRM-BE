@@ -1,5 +1,5 @@
 package com.mays.srm.billing.entities;
-import com.mays.srm.inventory.entities.Inventory;
+import com.mays.srm.inventory.entities.ProductList;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.organization.entities.Status;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -30,7 +30,7 @@ public class Billing {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Inventory product;
+    private ProductList product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_charge_id")
