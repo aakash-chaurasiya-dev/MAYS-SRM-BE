@@ -10,6 +10,7 @@ public class StatusResponseDTO {
     private Integer statusFlg;
     private String statusDescription;
     private String statusType;
+    private String statusGroup;
     private String allowedDepartmentIds;
     private String allowedRoles;
     private String slaTimerAction;

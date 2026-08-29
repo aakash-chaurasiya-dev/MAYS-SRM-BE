@@ -8,10 +8,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TicketLogsSummaryResponseDTO {
+    /** Modified by (employee who made the change) */
     private String modifiedBy;
+    /** Status after the change */
     private String status;
+    /** Date of the activity */
     private LocalDateTime modificationDate;
+    /** Remark / assignor remarks */
     private String assignorRemarks;
+    /** Assigned (assignor) */
     private String assignorEmployeeName;
+    /** Assigned to (assignee) */
     private String assigneeEmployeeName;
 }

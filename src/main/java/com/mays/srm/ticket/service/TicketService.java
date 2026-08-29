@@ -5,6 +5,7 @@ import com.mays.srm.ticket.dto.request.TicketRequestDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketDashboardResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketUserDashboardResponseDTO;
+import com.mays.srm.user.entities.UserMaster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

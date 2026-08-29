@@ -37,7 +37,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             
             if (countStr == null) {
                 // First request, set count to 1 and expire in 5 minutes
-                redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(15));
+                redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(10));
             } else {
                 int count = Integer.parseInt(countStr);
                 if (count >= MAX_REQUESTS_PER_MINUTE) {

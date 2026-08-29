@@ -20,4 +20,5 @@ public class BillingResponseDTO {
     private String statusName;
     private LocalDateTime billingDate;
     private String customerName;
+    private String UTR;
 }

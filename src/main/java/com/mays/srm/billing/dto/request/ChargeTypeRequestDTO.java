@@ -5,4 +5,8 @@ import lombok.Data;
 public class ChargeTypeRequestDTO {
     private String chargeName;
     private String chargeDescription;
+    private String allowedDepartmentIds;
+    private Boolean customerVisibility;
+    private Character accountingSide;
+    private Boolean isLocked;
 }

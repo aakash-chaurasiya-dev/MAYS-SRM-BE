@@ -37,8 +37,8 @@ public class Ticket {
     @JoinColumn(name = "ticket_status")
     private Status ticketStatus;
 
-    @Column(name = "email_id")
-    private String emailId;
+//    @Column(name = "email_id")
+//    private String emailId;
 
     @ManyToOne
     @JoinColumn(name = "device_id")

@@ -34,7 +34,7 @@ public class TicketLogsDaoCustomImpl implements TicketLogsDaoCustom {
                 "WHERE t.ticket.ticketId = :ticketId ORDER BY t.modificationDate DESC";
         TypedQuery<TicketLogsSummaryResponseDTO> query = entityManager.createQuery(jpql, TicketLogsSummaryResponseDTO.class);
         query.setParameter("ticketId", ticketId);
-        query.setMaxResults(3);
+        query.setMaxResults(10);
         return query.getResultList();
     }
 }
