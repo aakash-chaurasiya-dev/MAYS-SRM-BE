@@ -6,11 +6,13 @@ import com.mays.srm.billing.repository.ChargeTypeDao;
 import com.mays.srm.billing.repository.PaymentModeDetailsDao;
 import com.mays.srm.billing.repository.ServiceChargesDao;
 import com.mays.srm.ticket.repository.TicketDao;
-import com.mays.srm.inventory.entities.Inventory;
+import com.mays.srm.inventory.entities.ProductList;
+import com.mays.srm.inventory.entities.PartSalesPrice;
 import com.mays.srm.billing.entities.Billing;
 import com.mays.srm.billing.entities.ChargeType;
 import com.mays.srm.billing.entities.PaymentModeDetails;
-import com.mays.srm.inventory.repository.InventoryDao;
+import com.mays.srm.inventory.repository.ProductListDao;
+import com.mays.srm.inventory.repository.PartSalesPriceDao;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.organization.repository.StatusDao;
@@ -44,7 +46,8 @@ public class BillingServiceImpl implements BillingService {
     private final BillingDao repository;
     private final TicketDao ticketDao;
     private final ChargeTypeDao chargeTypeDao;
-    private final InventoryDao inventoryDao;
+    private final ProductListDao productListDao;
+    private final PartSalesPriceDao partSalesPriceDao;
     private final ServiceChargesDao serviceChargesDao;
     private final PaymentModeDetailsDao paymentModeDetailsDao;
     private final StatusDao statusDao;
@@ -52,12 +55,14 @@ public class BillingServiceImpl implements BillingService {
 
     @Autowired
     public BillingServiceImpl(BillingDao repository, TicketDao ticketDao, ChargeTypeDao chargeTypeDao,
-            InventoryDao inventoryDao, ServiceChargesDao serviceChargesDao, PaymentModeDetailsDao paymentModeDetailsDao,
+            ProductListDao productListDao, PartSalesPriceDao partSalesPriceDao,
+            ServiceChargesDao serviceChargesDao, PaymentModeDetailsDao paymentModeDetailsDao,
             StatusDao statusDao, ModelMapper modelMapper) {
         this.repository = repository;
         this.ticketDao = ticketDao;
         this.chargeTypeDao = chargeTypeDao;
-        this.inventoryDao = inventoryDao;
+        this.productListDao = productListDao;
+        this.partSalesPriceDao = partSalesPriceDao;
         this.serviceChargesDao = serviceChargesDao;
         this.paymentModeDetailsDao = paymentModeDetailsDao;
         this.statusDao = statusDao;
@@ -300,11 +305,13 @@ public class BillingServiceImpl implements BillingService {
                 if (requestDTO.getProductId() == null) {
                     throw new BadRequestException("Product ID is required for a 'Product Charge'.");
                 }
-                Optional<Inventory> productOpt = inventoryDao.findById(requestDTO.getProductId());
+                Optional<ProductList> productOpt = productListDao.findById(requestDTO.getProductId());
                 if (productOpt.isPresent()) {
                     billing.setProduct(productOpt.get());
-                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount()
-                            : productOpt.get().getSellingPrice());
+                    BigDecimal defaultPrice = partSalesPriceDao.findByProductListPartCatId(requestDTO.getProductId())
+                            .map(PartSalesPrice::getSalesPrice)
+                            .orElse(null);
+                    billing.setAmount(requestDTO.getAmount() != null ? requestDTO.getAmount() : defaultPrice);
                     billing.setServiceCharge(null);
                 } else {
                     throw new ResourceNotFoundException("Product not found with ID: " + requestDTO.getProductId());
@@ -349,8 +356,8 @@ public class BillingServiceImpl implements BillingService {
             dto.setChargeTypeName(billing.getChargeType().getChargeName());
         }
         if (billing.getProduct() != null) {
-            dto.setProductId(billing.getProduct().getProductId());
-            dto.setProductName(billing.getProduct().getProductName());
+            dto.setProductId(billing.getProduct().getPartCatId());
+            dto.setProductName(billing.getProduct().getPartName());
         }
         if (billing.getServiceCharge() != null) {
             dto.setServiceChargeId(billing.getServiceCharge().getChargeId());
