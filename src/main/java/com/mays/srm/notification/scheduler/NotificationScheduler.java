@@ -12,6 +12,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import jakarta.mail.internet.MimeMessage;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +38,15 @@ public class NotificationScheduler {
     @Value("${msg91.domain}")
     private String msg91Domain;
 
+    @Value("${spring.mail.username}")
+    private String smtpUsername;
+
+     @Autowired
+    private JavaMailSender javaMailSender;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Scheduled(fixedDelay = 100000000) // Runs every 10 seconds
+    @Scheduled(fixedDelay = 10) // Runs every 10 seconds
     public void processPendingNotifications() {
         List<NotificationOutbox> pendingList = notificationOutboxDao.findByStatus("PENDING");
 
@@ -61,19 +72,35 @@ public class NotificationScheduler {
     }
 
     public void sendEmail(NotificationOutbox outbox) throws Exception {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setTo(outbox.getRecipient());
+        helper.setSubject(outbox.getSubject() != null ? outbox.getSubject() : "Notification");
+        helper.setFrom(smtpUsername, "MAYS SRM");
+        helper.setText(outbox.getMessageBody()); // true = HTML format
+        try {
+            javaMailSender.send(message);
+//            System.out.println("✅ Email sent to: " + outbox.getRecipient());
+        } catch (Exception e) {
+            System.err.println("Failed to send email: " + e.getMessage());
+        }
+    }
+
+    public void sendEmailmsg91(NotificationOutbox outbox) throws Exception {
         String url = "https://control.msg91.com/api/v5/email/send";
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.set("authkey", msg91AuthKey);
 
         Map<String, Object> payload = new HashMap<>();
-        
+
         Map<String, String> toRecipient = new HashMap<>();
         toRecipient.put("email", outbox.getRecipient());
         toRecipient.put("name", "User");
-        
+
         Map<String, Object> recipientItem = new HashMap<>();
         recipientItem.put("to", List.of(toRecipient));
 
@@ -93,11 +120,11 @@ public class NotificationScheduler {
             // Fallback for non-template raw emails
             payload.put("recipients", List.of(recipientItem));
             payload.put("subject", outbox.getSubject() != null ? outbox.getSubject() : "Notification");
-            
+
             Map<String, String> emailBody = new HashMap<>();
             emailBody.put("type", "text/html");
             emailBody.put("data", outbox.getMessageBody()); // In this fallback, messageBody holds raw HTML
-            
+
             payload.put("body", emailBody);
         }
 
@@ -107,13 +134,13 @@ public class NotificationScheduler {
 
         payload.put("from", fromSender);
         payload.put("domain", msg91Domain);
-        
+
         System.out.println("MSG91 EMAIL PAYLOAD:");
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-        
+
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("MSG91 Email API failed: " + response.getBody());
         }

@@ -28,4 +28,18 @@ public class ChargeType {
     @org.hibernate.annotations.UpdateTimestamp
     @jakarta.persistence.Column(name = "last_update_date")
     private java.util.Date lastUpdateDate;
+
+    @Column(name = "allowed_department_ids")
+    private String allowedDepartmentIds;
+
+    @Column(name = "allowed_roles")
+    private String allowedRoles;
+    
+    @jakarta.persistence.Column(name = "customer_visibility")
+    private Boolean customerVisibility = false;
+
+    @jakarta.persistence.Column(name = "accounting_side")
+    private Character accountingSide;
+
+    
 }

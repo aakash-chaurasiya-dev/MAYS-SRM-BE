@@ -79,7 +79,7 @@ public class TicketAuditService {
         // 3. Other straightforward fields
         checkChange("priority", ticket.getPriority(), requestDTO.getPriority(), changes);
         checkChange("ticketDescription", ticket.getTicketDescription(), requestDTO.getTicketDescription(), changes);
-        checkChange("emailId", ticket.getEmailId(), requestDTO.getEmailId(), changes);
+//        checkChange("emailId", ticket.getEmailId(), requestDTO.getEmailId(), changes);
         if (requestDTO.getWarrantyTypeId() != null) {
             Integer oldWarrantyTypeId = ticket.getWarrantyType() != null ? ticket.getWarrantyType().getWarrantyTypeId() : null;
             checkChange("warrantyTypeId", oldWarrantyTypeId, requestDTO.getWarrantyTypeId(), changes);
@@ -198,7 +198,7 @@ public class TicketAuditService {
 
         checkChange("priority", null, requestDTO.getPriority(), changes);
         checkChange("ticketDescription", null, requestDTO.getTicketDescription(), changes);
-        checkChange("emailId", null, requestDTO.getEmailId(), changes);
+//        checkChange("emailId", null, requestDTO.getEmailId(), changes);
         checkChange("warrantyTypeId", null, requestDTO.getWarrantyTypeId(), changes);
         checkChange("referredCategoryId", null, requestDTO.getReferredCategoryId(), changes);
         checkChange("referredCategoryDecriptionTicket", null, requestDTO.getReferredCategoryDecriptionTicket(), changes);

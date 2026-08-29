@@ -12,4 +12,5 @@ public class BillingRequestDTO {
     private Integer paymentModeId;
     private BigDecimal amount;
     private Integer statusId;
+    private String UTR;
 }
