@@ -12,4 +12,10 @@ import lombok.Setter;
 public class UserEntryReportRequestDTO {
     private Integer userId;
     private String reason;
+    private String entryType;
+    private Integer enquiryId;
+    private Integer ticketId;
+    private Integer inwardId;
+    private Integer outwardId;
 }
+
