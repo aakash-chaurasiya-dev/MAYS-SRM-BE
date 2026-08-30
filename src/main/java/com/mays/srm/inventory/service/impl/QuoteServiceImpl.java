@@ -14,8 +14,11 @@ import com.mays.srm.inventory.repository.QuoteDao;
 import com.mays.srm.inventory.repository.TicketPartDao;
 import com.mays.srm.inventory.service.QuoteService;
 import com.mays.srm.inventory.util.InventoryAuditHelper;
+import com.mays.srm.notification.service.NotificationService;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.ticket.repository.TicketDao;
+import com.mays.srm.ticket.service.impl.TicketQueryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,16 +32,20 @@ public class QuoteServiceImpl implements QuoteService {
     private final TicketPartDao ticketPartDao;
     private final TicketDao ticketDao;
     private final ProductListDao productListDao;
+    private final NotificationService notificationService;
 
+    @Autowired
     public QuoteServiceImpl(
             QuoteDao quoteDao,
             TicketPartDao ticketPartDao,
             TicketDao ticketDao,
-            ProductListDao productListDao) {
+            ProductListDao productListDao,
+            NotificationService notificationService) {
         this.quoteDao = quoteDao;
         this.ticketPartDao = ticketPartDao;
         this.ticketDao = ticketDao;
         this.productListDao = productListDao;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -71,6 +78,19 @@ public class QuoteServiceImpl implements QuoteService {
         quote.setCreatedBy(InventoryAuditHelper.currentEmployeeId());
         quote.setUpdatedBy(InventoryAuditHelper.currentEmployeeId());
         quoteDao.save(quote);
+
+        // Enqueue notification email
+        if (quote.getTicket().getUserMaster().getEmailId() != null && !quote.getTicket().getUserMaster().getEmailId().isEmpty()) {
+            java.util.Map<String, Object> variables = new java.util.HashMap<>();
+            variables.put("ticketNo", quote.getTicket().getTicketId());
+            variables.put("Part_name", quote.getProductList().getPartName());
+            variables.put("Price", quote.getSalesPrice());
+            variables.put("Description",quote.getDescription());
+            variables.put("Subject", quote.getSubject());
+            variables.put("body",quote.getBody());
+            variables.put("company_name", "Mays Computer Repair & Solutions");
+            notificationService.enqueueEmail(quote.getTicket().getUserMaster().getEmailId(), quote.getSubject() + quote.getTicket().getTicketId(), "ticket-notification", variables);
+        }
 
         return findQuoteResponse(quote.getQuoteId(), ticketPart.getTicketPartId());
     }

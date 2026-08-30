@@ -75,7 +75,9 @@ public class StatusServiceImpl implements StatusService {
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Status not found with ID: " + id);
         }
-
+        if (Boolean.TRUE.equals(existingOpt.get().getIsLocked())) {
+            throw new RuntimeException("Cannot modify a locked system configuration.");
+        }
         Status existingStatus = existingOpt.get();
         modelMapper.map(requestDTO, existingStatus);
 

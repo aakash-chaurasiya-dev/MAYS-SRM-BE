@@ -9,7 +9,7 @@ public class TicketRequestDTO {
     private String userRefNo; // UserMaster ID
     private Integer ticketTypeId;
     private Integer ticketStatusId;
-    private String emailId;
+//    private String emailId;
     private String deviceSerialNo; // Device ID
     private String ticketDescription;
     private Integer ticketBranchId;

@@ -15,6 +15,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import com.mays.srm.organization.util.DepartmentRoleResolver;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,18 +27,23 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
 
     private final ChargeTypeDao repository;
     private final ModelMapper modelMapper;
+    private final DepartmentRoleResolver departmentRoleResolver;
+
 
     @Autowired
-    public ChargeTypeServiceImpl(ChargeTypeDao repository, ModelMapper modelMapper) {
+    public ChargeTypeServiceImpl(ChargeTypeDao repository, ModelMapper modelMapper, DepartmentRoleResolver departmentRoleResolver) {
         this.repository = repository;
         this.modelMapper = modelMapper;
+        this.departmentRoleResolver = departmentRoleResolver;
     }
+
 
     @Override
     @CacheEvict(value = "chargeTypes", allEntries = true)
     public ChargeTypeResponseDTO create(ChargeTypeRequestDTO requestDTO) {
         try {
             ChargeType chargeType = modelMapper.map(requestDTO, ChargeType.class);
+            assignRoleFromDepartment(chargeType);
             ChargeType savedChargeType = repository.save(chargeType);
             return mapToResponseDTO(savedChargeType);
         } catch (Exception ex) {
@@ -73,11 +80,14 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
         if (existingOpt.isEmpty()) {
             throw new ResourceNotFoundException("Cannot update. Charge Type not found with ID: " + id);
         }
-        
+        if (Boolean.TRUE.equals(existingOpt.get().getIsLocked())) {
+            throw new RuntimeException("Cannot modify a locked system configuration.");
+        }
         ChargeType existingChargeType = existingOpt.get();
         modelMapper.map(requestDTO, existingChargeType);
         existingChargeType.setChargeTypeId(id);
         try {
+            assignRoleFromDepartment(existingChargeType);
             ChargeType updatedChargeType = repository.save(existingChargeType);
             return mapToResponseDTO(updatedChargeType);
         } catch (Exception ex) {
@@ -108,5 +118,9 @@ public class ChargeTypeServiceImpl implements ChargeTypeService {
     private ChargeTypeResponseDTO mapToResponseDTO(ChargeType chargeType) {
         ChargeTypeResponseDTO dto = modelMapper.map(chargeType, ChargeTypeResponseDTO.class);
         return dto;
+    }
+
+     private void assignRoleFromDepartment(ChargeType chargeType) {
+        chargeType.setAllowedRoles(departmentRoleResolver.resolveAllowedRolesCsv(chargeType.getAllowedDepartmentIds()));
     }
 }

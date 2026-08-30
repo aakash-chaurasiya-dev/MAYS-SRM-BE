@@ -24,6 +24,9 @@ public class Status {
     @Column(name = "status_description")
     private String statusDescription;
 
+    @Column(name = "status_group")
+    private String statusGroup;
+
     @Column(name = "status_type")
     private String statusType;
 

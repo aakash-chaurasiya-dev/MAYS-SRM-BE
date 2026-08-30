@@ -56,4 +56,7 @@ public class Billing {
 
     @Column(name = "billing_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime billingDate;
+
+    @Column(name = "utr", length = 100)
+    private String UTR;
 }

@@ -295,6 +295,11 @@ public class BillingServiceImpl implements BillingService {
                 throw new ResourceNotFoundException("Status not found with ID: " + requestDTO.getStatusId());
             }
         }
+
+        // UTR
+        if (requestDTO.getUTR() != null) {
+            billing.setUTR(requestDTO.getUTR());
+        }
     }
 
     private void calculateAmount(Billing billing, BillingRequestDTO requestDTO) {
@@ -370,6 +375,9 @@ public class BillingServiceImpl implements BillingService {
         if (billing.getStatus() != null) {
             dto.setStatusId(billing.getStatus().getStatusId());
             dto.setStatusName(billing.getStatus().getStatusName());
+        }
+        if (billing.getUTR() != null) {
+            dto.setUTR(billing.getUTR());
         }
 
         return dto;

@@ -16,6 +16,7 @@ import com.mays.srm.notification.service.NotificationService;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.security.util.SecurityUtils;
+import com.mays.srm.user.entities.UserMaster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -89,9 +90,9 @@ public class TicketServiceImpl implements TicketService {
             if (requestDTO.getTicketDescription() != null) {
                 ticket.setTicketDescription(requestDTO.getTicketDescription());
             }
-            if (requestDTO.getEmailId() != null) {
-                ticket.setEmailId(requestDTO.getEmailId());
-            }
+//            if (requestDTO.getUserMaster().getEmailId() != null) {
+//                ticket.setEmailId(requestDTO.getUserMaster().getEmailId());
+//            }
             if (requestDTO.getReferredCategoryDecriptionTicket() != null) {
                 ticket.setReferredCategoryDecriptionTicket(requestDTO.getReferredCategoryDecriptionTicket());
             }
@@ -121,14 +122,14 @@ public class TicketServiceImpl implements TicketService {
             }
 
             // Enqueue notification email
-            if (savedTicket.getEmailId() != null && !savedTicket.getEmailId().isEmpty()) {
+            if (savedTicket.getUserMaster().getEmailId() != null && !savedTicket.getUserMaster().getEmailId().isEmpty()) {
                 java.util.Map<String, Object> variables = new java.util.HashMap<>();
                 variables.put("ticketNo", savedTicket.getTicketId());
-                variables.put("status", savedTicket.getTicketStatus() != null ? savedTicket.getTicketStatus().getStatusName() : "Created");
+                variables.put("status", savedTicket.getTicketStatus() != null ? savedTicket.getTicketStatus().getStatusGroup() : "Created");
                 variables.put("description", savedTicket.getTicketDescription());
                 variables.put("userName", savedTicket.getUserMaster().getFirstName() != null ? savedTicket.getUserMaster().getFirstName() : "Customer");
                 variables.put("company_name", "Mays Computer Repair & Solutions");
-                notificationService.enqueueEmail(savedTicket.getEmailId(), "Ticket Created: " + savedTicket.getTicketId(), "ticket-notification", variables);
+                notificationService.enqueueEmail(savedTicket.getUserMaster().getEmailId(), "Ticket Created: " + savedTicket.getTicketId(), "ticket-notification", variables);
             }
 
             return ticketMapperService.mapToResponseDTO(savedTicket);
@@ -171,6 +172,8 @@ public class TicketServiceImpl implements TicketService {
         return ticketQueryService.getLightweightTicketsByUserId(userId);
     }
 
+
+
     // This is Redies Changes: Remove ticket from cache when it is updated
     @Override
     @Transactional
@@ -198,9 +201,9 @@ public class TicketServiceImpl implements TicketService {
         if (requestDTO.getTicketDescription() != null) {
             ticket.setTicketDescription(requestDTO.getTicketDescription());
         }
-        if (requestDTO.getEmailId() != null) {
-            ticket.setEmailId(requestDTO.getEmailId());
-        }
+//        if (requestDTO.getEmailId() != null) {
+//            ticket.setEmailId(requestDTO.getEmailId());
+//        }
         if (requestDTO.getReferredCategoryDecriptionTicket() != null) {
             ticket.setReferredCategoryDecriptionTicket(requestDTO.getReferredCategoryDecriptionTicket());
         }
@@ -225,12 +228,12 @@ public class TicketServiceImpl implements TicketService {
         }
 
         // Enqueue notification email
-        if (updatedTicket.getEmailId() != null && !updatedTicket.getEmailId().isEmpty()) {
+        if (updatedTicket.getUserMaster().getEmailId() != null && !updatedTicket.getUserMaster().getEmailId().isEmpty()) {
             java.util.Map<String, Object> variables = new java.util.HashMap<>();
             variables.put("ticketNo", updatedTicket.getTicketId());
-            variables.put("status", updatedTicket.getTicketStatus() != null ? updatedTicket.getTicketStatus().getStatusName() : "Updated");
+            variables.put("status", updatedTicket.getTicketStatus() != null ? updatedTicket.getTicketStatus().getStatusGroup() : "Updated");
             variables.put("description", updatedTicket.getTicketDescription());
-            notificationService.enqueueEmail(updatedTicket.getEmailId(), "Ticket Updated: " + updatedTicket.getTicketId(), "ticket-notification", variables);
+            notificationService.enqueueEmail(updatedTicket.getUserMaster().getEmailId(), "Ticket Updated: " + updatedTicket.getTicketId(), "ticket-notification", variables);
         }
 
         return ticketMapperService.mapToResponseDTO(updatedTicket);
