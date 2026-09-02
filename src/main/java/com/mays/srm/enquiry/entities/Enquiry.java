@@ -1,5 +1,8 @@
 package com.mays.srm.enquiry.entities;
 import com.mays.srm.device.entities.Brand;
+import com.mays.srm.device.entities.DeviceModel;
+import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.user.entities.UserMaster;
 import com.mays.srm.organization.entities.Status;
 import jakarta.persistence.*;
@@ -30,8 +33,19 @@ public class Enquiry {
     private String serialNo;
 
     @ManyToOne
+    @JoinColumn(name = "device_type_id")
+    private DeviceType deviceType;
+
+    @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;
+
+    @ManyToOne
+    @JoinColumn(name = "model_id")
+    private DeviceModel deviceModel;
+
+    @Column(name = "custom_model_name")
+    private String customModelName;
 
     @Column(name = "enquiry_for")
     private String enquiryFor;
@@ -45,4 +59,24 @@ public class Enquiry {
     @ManyToOne
     @JoinColumn(name = "status_id")
     private Status status;
+
+    @ManyToOne
+    @JoinColumn(name = "converted_ticket_id")
+    private Ticket convertedTicket;
+
+    @Column(name = "is_converted")
+    private Boolean isConverted = false;
+
+    @Column(name = "customer_name")
+    private String customerName;
+
+    @Column(name = "mobile_no")
+    private String mobileNo;
+
+    @Column(name = "email_id")
+    private String emailId;
+
+    @Column(name = "address", columnDefinition = "TEXT")
+    private String address;
 }
+

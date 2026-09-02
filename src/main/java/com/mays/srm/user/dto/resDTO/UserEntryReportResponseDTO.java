@@ -16,5 +16,11 @@ public class UserEntryReportResponseDTO {
     private Integer userId;
     private String userName;
     private String reason;
+    private String entryType;
+    private Integer enquiryId;
+    private Integer ticketId;
+    private Integer inwardId;
+    private Integer outwardId;
     private Date entryDate;
 }
+

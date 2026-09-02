@@ -57,6 +57,19 @@ public class EnquiryController {
         return ResponseEntity.ok(updatedDto);
     }
 
+    @PostMapping("/{id}/convert-to-ticket")
+    public ResponseEntity<com.mays.srm.ticket.dto.resDTO.TicketResponseDTO> convertToTicket(
+            @PathVariable Integer id,
+            @RequestParam(required = false) Integer employeeId) {
+        Integer resolvedEmployeeId = employeeId;
+        if (resolvedEmployeeId == null) {
+            resolvedEmployeeId = com.mays.srm.timetracking.util.StatusAccessValidator.getCurrentEmployeeId();
+        }
+        com.mays.srm.ticket.dto.resDTO.TicketResponseDTO ticketResponse = enquiryService.convertToTicket(id, resolvedEmployeeId);
+        return ResponseEntity.ok(ticketResponse);
+    }
+
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiriesOfUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(enquiryService.getAllEnquiriesOfUser(userId));
