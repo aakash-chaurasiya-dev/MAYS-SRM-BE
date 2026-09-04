@@ -1,4 +1,5 @@
 package com.mays.srm.security.config;
+
 import com.mays.srm.security.filter.*;
 import com.mays.srm.security.handler.*;
 
@@ -74,11 +75,13 @@ public class SecurityConfig {
                                                                 "/swagger-ui.html",
                                                                 "/actuator/health",
                                                                 "/actuator/info",
+                                                                "/actuator/caches",
                                                                 "/actuator/**")
                                                 .permitAll()
 
                                                 // 2. EMPLOYEE MANAGEMENT: Only Manager/Executive can access
-                                                .requestMatchers(HttpMethod.GET, "/api/employees/**", "/api/employee-specs/**")
+                                                .requestMatchers(HttpMethod.GET, "/api/employees/**",
+                                                                "/api/employee-specs/**")
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE")
                                                 .requestMatchers("/api/employees/**", "/api/employee-specs/**")
                                                 .hasAnyRole("MANAGER", "EXECUTIVE")
@@ -92,50 +95,71 @@ public class SecurityConfig {
                                                 // 2b. CUSTOMER ACCESS: Allow read metadata and ticket operations for
                                                 // customers (ROLE_USER)
                                                 .requestMatchers(HttpMethod.GET, "/api/devices/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/devicetypes/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/devicemodels/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/ticket-types/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/referred-categories/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/warranty-types/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/branches/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/brands/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.POST, "/api/tickets")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.PUT, "/api/tickets/*")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/tickets/user/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/tickets/*")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/enquiries/pending/count")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers(HttpMethod.GET, "/api/enquiries/user/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE")
                                                 .requestMatchers(HttpMethod.POST, "/api/enquiries")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE")
                                                 .requestMatchers(HttpMethod.PUT, "/api/enquiries/*")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE")
                                                 .requestMatchers(HttpMethod.GET, "/api/enquiries/*")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE")
                                                 .requestMatchers("/api/enquiries/**")
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE")
                                                 .requestMatchers("/api/tickets/*/attachments/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers("/api/ticket-logs/*")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE",
+                                                                "VENDOR")
                                                 .requestMatchers("/api/ticket-accessories/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
                                                 .requestMatchers("/api/device-accessories/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER", "EXECUTIVE", "VENDOR")
-                                                .requestMatchers(HttpMethod.POST,"/api/user-entry-reports")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
+                                                                "EXECUTIVE", "VENDOR")
+                                                .requestMatchers(HttpMethod.POST, "/api/user-entry-reports")
                                                 .hasAnyRole("USER")
 
                                                 // Restrict modify access to master metadata to MANAGER/EXECUTIVE
@@ -154,7 +178,7 @@ public class SecurityConfig {
                                                                 "/api/service-charges/**",
                                                                 "/api/statuses/**",
                                                                 "/api/sla-policies/**")
-                                                .hasAnyRole("MANAGER", "EXECUTIVE","ADMIN","PURCHASE","ENGINEER")
+                                                .hasAnyRole("MANAGER", "EXECUTIVE", "ADMIN", "PURCHASE", "ENGINEER")
 
                                                 // 3. TICKETS, DEVICES, BRANCHES, STATUSES: Accessible by Manager,
                                                 // Purchase, Engineer, Admin, and Executive
@@ -167,13 +191,16 @@ public class SecurityConfig {
                                                                 "/api/devicemodels/**",
                                                                 "/api/branches/**",
                                                                 "/api/statuses/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE", "VENDOR")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE",
+                                                                "VENDOR")
 
                                                 // 4. ACTUATOR: Sensitive endpoints restricted
                                                 // .requestMatchers("/actuator/**").hasAnyRole("MANAGER", "ADMIN")
 
-                                                // 5. EVERYTHING ELSE (Purchase/Executive related): Accessible by Manager, Executive, Admin, and Purchase Team
-                                                .anyRequest().hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE", "VENDOR"))
+                                                // 5. EVERYTHING ELSE (Purchase/Executive related): Accessible by
+                                                // Manager, Executive, Admin, and Purchase Team
+                                                .anyRequest().hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN",
+                                                                "EXECUTIVE", "VENDOR"))
 
                                 // Set Session Management (Make the API Stateless)
                                 // Meaning: Do NOT remember users between clicks. Force them to show the

@@ -231,7 +231,7 @@ public class EnquiryServiceImpl implements EnquiryService {
         // Construct TicketRequestDTO
         TicketRequestDTO ticketRequest = new TicketRequestDTO();
         ticketRequest.setUserRefNo(String.valueOf(customer.getUserId()));
-        ticketRequest.setEmailId(customer.getEmailId());
+        // ticketRequest.setEmailId(customer.getEmailId());
         ticketRequest.setDeviceSerialNo(enquiry.getSerialNo());
         ticketRequest.setTicketDescription(enquiry.getEnquiryFor() + ": " + enquiry.getQueryText());
         ticketRequest.setTicketTypeId(ticketTypeId);
