@@ -243,7 +243,7 @@ public class BillingServiceImpl implements BillingService {
                 calculateAmount(billing, c);
                 billing = repository.save(billing);
             }
-            if (billing.getAmount() != null) {
+            if (billing.getAmount() != null && billing.getChargeType().getAccountingSide().equals('R')) {
                 totalAmount = totalAmount.add(billing.getAmount());
             }
         }
