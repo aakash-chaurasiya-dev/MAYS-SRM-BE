@@ -78,10 +78,10 @@ public class NotificationScheduler {
         helper.setTo(outbox.getRecipient());
         helper.setSubject(outbox.getSubject() != null ? outbox.getSubject() : "Notification");
         helper.setFrom(smtpUsername, "MAYS SRM");
-        helper.setText(outbox.getMessageBody()); // true = HTML format
+        helper.setText(outbox.getMessageBody(), true); // true = HTML format
         try {
             javaMailSender.send(message);
-//            System.out.println("✅ Email sent to: " + outbox.getRecipient());
+           System.out.println("✅ Email sent to: " + outbox.getRecipient());
         } catch (Exception e) {
             System.err.println("Failed to send email: " + e.getMessage());
         }

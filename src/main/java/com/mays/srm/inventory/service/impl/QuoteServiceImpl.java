@@ -86,10 +86,9 @@ public class QuoteServiceImpl implements QuoteService {
             variables.put("Part_name", quote.getProductList().getPartName());
             variables.put("Price", quote.getSalesPrice());
             variables.put("Description",quote.getDescription());
-            variables.put("Subject", quote.getSubject());
             variables.put("body",quote.getBody());
             variables.put("company_name", "Mays Computer Repair & Solutions");
-            notificationService.enqueueEmail(quote.getTicket().getUserMaster().getEmailId(), quote.getSubject() + quote.getTicket().getTicketId(), "ticket-notification", variables);
+            notificationService.enqueueEmail(quote.getTicket().getUserMaster().getEmailId(), quote.getSubject() + quote.getTicket().getTicketId(), "send_quotes", variables);
         }
 
         return findQuoteResponse(quote.getQuoteId(), ticketPart.getTicketPartId());

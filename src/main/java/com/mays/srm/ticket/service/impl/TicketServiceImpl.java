@@ -16,7 +16,6 @@ import com.mays.srm.notification.service.NotificationService;
 import com.mays.srm.organization.entities.Status;
 import com.mays.srm.user.entities.Employee;
 import com.mays.srm.security.util.SecurityUtils;
-import com.mays.srm.user.entities.UserMaster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -129,7 +128,7 @@ public class TicketServiceImpl implements TicketService {
                 variables.put("description", savedTicket.getTicketDescription());
                 variables.put("userName", savedTicket.getUserMaster().getFirstName() != null ? savedTicket.getUserMaster().getFirstName() : "Customer");
                 variables.put("company_name", "Mays Computer Repair & Solutions");
-                notificationService.enqueueEmail(savedTicket.getUserMaster().getEmailId(), "Ticket Created: " + savedTicket.getTicketId(), "ticket-notification", variables);
+                notificationService.enqueueEmail(savedTicket.getUserMaster().getEmailId(), "Ticket Created: " + savedTicket.getTicketId(), "create_ticket", variables);
             }
 
             return ticketMapperService.mapToResponseDTO(savedTicket);
@@ -233,7 +232,9 @@ public class TicketServiceImpl implements TicketService {
             variables.put("ticketNo", updatedTicket.getTicketId());
             variables.put("status", updatedTicket.getTicketStatus() != null ? updatedTicket.getTicketStatus().getStatusGroup() : "Updated");
             variables.put("description", updatedTicket.getTicketDescription());
-            notificationService.enqueueEmail(updatedTicket.getUserMaster().getEmailId(), "Ticket Updated: " + updatedTicket.getTicketId(), "ticket-notification", variables);
+            variables.put("userName", updatedTicket.getUserMaster().getFirstName() != null ? updatedTicket.getUserMaster().getFirstName() : "Customer");
+            variables.put("company_name", "Mays Computer Repair & Solutions");
+            notificationService.enqueueEmail(updatedTicket.getUserMaster().getEmailId(), "Ticket Updated: " + updatedTicket.getTicketId(), "update_ticket", variables);
         }
 
         return ticketMapperService.mapToResponseDTO(updatedTicket);
