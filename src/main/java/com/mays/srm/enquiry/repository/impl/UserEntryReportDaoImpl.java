@@ -1,7 +1,7 @@
-package com.mays.srm.user.repository.impl;
+package com.mays.srm.enquiry.repository.impl;
 
-import com.mays.srm.user.entities.UserEntryReport;
-import com.mays.srm.user.repository.UserEntryReportDaoCustom;
+import com.mays.srm.enquiry.entities.UserEntryReport;
+import com.mays.srm.enquiry.repository.UserEntryReportDaoCustom;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;

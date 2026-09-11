@@ -1,10 +1,14 @@
 package com.mays.srm.enquiry.controller;
-import com.mays.srm.enquiry.dto.request.EnquiryRequestDTO;
+
+import com.mays.srm.enquiry.dto.reqDTO.EnquiryMarkActionRequestDTO;
+import com.mays.srm.enquiry.dto.reqDTO.EnquiryRequestDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryPendingCountDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryResponseDTO;
 import com.mays.srm.enquiry.service.EnquiryService;
 import com.mays.srm.security.core.CustomUserDetails;
 import com.mays.srm.security.util.SecurityUtils;
+import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
+import com.mays.srm.timetracking.util.StatusAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +25,7 @@ public class EnquiryController {
 
     @PostMapping
     public ResponseEntity<EnquiryResponseDTO> createEnquiry(@RequestBody EnquiryRequestDTO requestDTO) {
-        EnquiryResponseDTO responseDTO = enquiryService.create(requestDTO);
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(enquiryService.create(requestDTO));
     }
 
     @GetMapping("/pending/count")
@@ -41,34 +44,50 @@ public class EnquiryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EnquiryResponseDTO> getEnquiryById(@PathVariable Integer id) {
-        EnquiryResponseDTO responseDTO = enquiryService.getById(id);
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(enquiryService.getById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiries() {
-        List<EnquiryResponseDTO> responseDTOs = enquiryService.getAll();
-        return ResponseEntity.ok(responseDTOs);
+        return ResponseEntity.ok(enquiryService.getAll());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EnquiryResponseDTO> updateEnquiry(@PathVariable Integer id, @RequestBody EnquiryRequestDTO requestDTO) {
-        EnquiryResponseDTO updatedDto = enquiryService.update(id, requestDTO);
-        return ResponseEntity.ok(updatedDto);
+    public ResponseEntity<EnquiryResponseDTO> updateEnquiry(@PathVariable Integer id,
+                                                            @RequestBody EnquiryRequestDTO requestDTO) {
+        return ResponseEntity.ok(enquiryService.update(id, requestDTO));
+    }
+
+    // ── NEW: fetch enquiry linked to a ticket ──
+    @GetMapping("/by-ticket/{ticketId}")
+    public ResponseEntity<EnquiryResponseDTO> getByTicketId(@PathVariable Integer ticketId) {
+        EnquiryResponseDTO dto = enquiryService.getByTicketId(ticketId);
+        return dto == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/by-ticket/{ticketId}/mark-outward")
+    public ResponseEntity<Void> markOutwardByTicket(@PathVariable Integer ticketId) {
+        enquiryService.markOutwardByTicket(ticketId);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/convert-to-ticket")
-    public ResponseEntity<com.mays.srm.ticket.dto.resDTO.TicketResponseDTO> convertToTicket(
+    public ResponseEntity<TicketResponseDTO> convertToTicket(
             @PathVariable Integer id,
             @RequestParam(required = false) Integer employeeId) {
         Integer resolvedEmployeeId = employeeId;
         if (resolvedEmployeeId == null) {
-            resolvedEmployeeId = com.mays.srm.timetracking.util.StatusAccessValidator.getCurrentEmployeeId();
+            resolvedEmployeeId = StatusAccessValidator.getCurrentEmployeeId();
         }
-        com.mays.srm.ticket.dto.resDTO.TicketResponseDTO ticketResponse = enquiryService.convertToTicket(id, resolvedEmployeeId);
-        return ResponseEntity.ok(ticketResponse);
+        return ResponseEntity.ok(enquiryService.convertToTicket(id, resolvedEmployeeId));
     }
 
+    @PostMapping("/{id}/mark-action")
+    public ResponseEntity<Void> markAction(@PathVariable Integer id,
+                                           @RequestBody EnquiryMarkActionRequestDTO requestDTO) {
+        enquiryService.markAction(id, requestDTO);
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<EnquiryResponseDTO>> getAllEnquiriesOfUser(@PathVariable Integer userId) {

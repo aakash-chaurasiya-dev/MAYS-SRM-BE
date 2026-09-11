@@ -1,12 +1,14 @@
 package com.mays.srm.enquiry.entities;
-import com.mays.srm.device.entities.Brand;
+
 import com.mays.srm.device.entities.DeviceModel;
-import com.mays.srm.device.entities.DeviceType;
+import com.mays.srm.enquiry.enums.EnquiryStatus;
 import com.mays.srm.ticket.entities.Ticket;
 import com.mays.srm.user.entities.UserMaster;
-import com.mays.srm.organization.entities.Status;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -14,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Enquiry")
+@Table(name = "enquiry")
 public class Enquiry {
 
     @Id
@@ -26,27 +28,6 @@ public class Enquiry {
     @JoinColumn(name = "user_id")
     private UserMaster user;
 
-    @Column(name = "timestamp")
-    private LocalDateTime timestamp;
-
-    @Column(name = "serial_no")
-    private String serialNo;
-
-    @ManyToOne
-    @JoinColumn(name = "device_type_id")
-    private DeviceType deviceType;
-
-    @ManyToOne
-    @JoinColumn(name = "brand_id")
-    private Brand brand;
-
-    @ManyToOne
-    @JoinColumn(name = "model_id")
-    private DeviceModel deviceModel;
-
-    @Column(name = "custom_model_name")
-    private String customModelName;
-
     @Column(name = "enquiry_for")
     private String enquiryFor;
 
@@ -56,27 +37,34 @@ public class Enquiry {
     @Column(name = "remark", columnDefinition = "TEXT")
     private String remark;
 
-    @ManyToOne
-    @JoinColumn(name = "status_id")
-    private Status status;
+    // ✅ OLD: @ManyToOne private Status status; (DELINK kar diya)
+    // ✅ NEW: Direct Enum as String in DB
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)  // DB mein naya column 'status' (VARCHAR)
+    private EnquiryStatus status;
+
+    @CreationTimestamp
+    @Column(name = "insert_date", updatable = false)
+    private LocalDateTime insertDate;
+
+    @UpdateTimestamp
+    @Column(name = "last_update_date")
+    private LocalDateTime lastUpdateDate;
+
+    @Column(name = "is_converted")
+    private Boolean isConverted;
 
     @ManyToOne
     @JoinColumn(name = "converted_ticket_id")
     private Ticket convertedTicket;
 
-    @Column(name = "is_converted")
-    private Boolean isConverted = false;
+    @Column(name = "serial_no", nullable = false, length = 100)
+    private String serialNo;
 
-    @Column(name = "customer_name")
-    private String customerName;
+    @ManyToOne
+    @JoinColumn(name = "model_id")
+    private DeviceModel deviceModel;
 
-    @Column(name = "mobile_no")
-    private String mobileNo;
-
-    @Column(name = "email_id")
-    private String emailId;
-
-    @Column(name = "address", columnDefinition = "TEXT")
-    private String address;
+    @Column(name = "action", nullable = false)
+    private Integer action;
 }
-

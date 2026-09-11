@@ -41,7 +41,7 @@ public class RedisConfig {
     // ✅ ADD THIS NEW BEAN: This makes Actuator show your caches!
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory,
-            RedisCacheConfiguration cacheConfiguration) {
+                                     RedisCacheConfiguration cacheConfiguration) {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(cacheConfiguration) // Uses your custom JSON config
                 .build();

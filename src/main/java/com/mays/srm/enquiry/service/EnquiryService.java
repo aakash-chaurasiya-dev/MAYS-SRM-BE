@@ -1,9 +1,12 @@
 package com.mays.srm.enquiry.service;
+
 import com.mays.srm.core.service.GenericService;
-import com.mays.srm.enquiry.dto.request.EnquiryRequestDTO;
+import com.mays.srm.enquiry.dto.reqDTO.EnquiryMarkActionRequestDTO;
+import com.mays.srm.enquiry.dto.reqDTO.EnquiryRequestDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryPendingCountDTO;
 import com.mays.srm.enquiry.dto.resDTO.EnquiryResponseDTO;
 import com.mays.srm.ticket.dto.resDTO.TicketResponseDTO;
+
 import java.util.List;
 
 public interface EnquiryService extends GenericService<EnquiryRequestDTO, EnquiryResponseDTO, Integer> {
@@ -11,5 +14,9 @@ public interface EnquiryService extends GenericService<EnquiryRequestDTO, Enquir
     EnquiryPendingCountDTO getPendingCountAll();
     EnquiryPendingCountDTO getPendingCountForUser(Integer userId);
     TicketResponseDTO convertToTicket(Integer enquiryId, Integer employeeId);
-}
+    void markAction(Integer enquiryId, EnquiryMarkActionRequestDTO requestDTO);  // new method
+    void markOutwardByTicket(Integer ticketId);
 
+    EnquiryResponseDTO getByTicketId(Integer ticketId);
+
+}
