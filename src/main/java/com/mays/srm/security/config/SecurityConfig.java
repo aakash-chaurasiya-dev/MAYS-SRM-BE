@@ -146,7 +146,8 @@ public class SecurityConfig {
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
                                                                 "EXECUTIVE")
                                                 .requestMatchers("/api/enquiries/**")
-                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE")
+                                                .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "EXECUTIVE","USER")
+                                                
                                                 .requestMatchers("/api/tickets/*/attachments/**")
                                                 .hasAnyRole("MANAGER", "PURCHASE", "ENGINEER", "ADMIN", "USER",
                                                                 "EXECUTIVE", "VENDOR")

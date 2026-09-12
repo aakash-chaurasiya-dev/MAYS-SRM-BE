@@ -1,6 +1,6 @@
-package com.mays.srm.user.repository;
+package com.mays.srm.enquiry.repository;
 
-import com.mays.srm.user.entities.UserEntryReport;
+import com.mays.srm.enquiry.entities.UserEntryReport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;

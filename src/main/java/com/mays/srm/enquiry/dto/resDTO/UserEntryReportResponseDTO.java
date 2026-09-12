@@ -1,11 +1,12 @@
-package com.mays.srm.user.dto.resDTO;
+package com.mays.srm.enquiry.dto.resDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,11 +17,10 @@ public class UserEntryReportResponseDTO {
     private Integer userId;
     private String userName;
     private String reason;
-    private String entryType;
     private Integer enquiryId;
-    private Integer ticketId;
-    private Integer inwardId;
-    private Integer outwardId;
-    private Date entryDate;
+    private LocalDateTime entryDate;
+    private String brandName;
+    private String modelName;
+    private String serialNo;
+    private String deviceTypeName;
 }
-

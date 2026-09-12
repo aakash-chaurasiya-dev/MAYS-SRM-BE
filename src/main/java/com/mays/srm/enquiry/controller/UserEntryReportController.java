@@ -1,7 +1,7 @@
-package com.mays.srm.user.controller;
+package com.mays.srm.enquiry.controller;
 
-import com.mays.srm.user.dto.reqDTO.UserEntryReportRequestDTO;
-import com.mays.srm.user.service.UserEntryReportService;
+import com.mays.srm.enquiry.dto.reqDTO.UserEntryReportRequestDTO;
+import com.mays.srm.enquiry.service.UserEntryReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
