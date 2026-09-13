@@ -26,10 +26,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+        @Value("${spring.vps_ip}")
+        private String VPS_IP;
 
         @Autowired
         private JwtAuthFilter jwtAuthFilter; // The Security Guard
@@ -230,7 +234,7 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // Allow the React frontend
-                configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+                configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://" + VPS_IP + ":5173", "http://" + VPS_IP));
                 // Allow standard HTTP methods
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 // Allow headers including Authorization for JWT
