@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import com.mays.srm.security.entities.SecurityProfile;
 
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (employeeOpt.isPresent()) {
             Employee emp = employeeOpt.get(); // We found an employee!
             // Get their security profile
-            com.mays.srm.security.entities.SecurityProfile profile = securityProfileService.getOrCreateProfileForEmployee(emp);
+            SecurityProfile profile = securityProfileService.getOrCreateProfileForEmployee(emp);
             boolean isLocked = securityProfileService.isAccountLocked(profile);
             
             // We convert the Employee into our CustomUserDetails (The Passport)
@@ -54,7 +55,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             UserMaster user = userOpt.get(); // We found a normal user!
             
             // Get their security profile
-            com.mays.srm.security.entities.SecurityProfile profile = securityProfileService.getOrCreateProfileForUser(user);
+            SecurityProfile profile = securityProfileService.getOrCreateProfileForUser(user);
             boolean isLocked = securityProfileService.isAccountLocked(profile);
 
             // We convert the User into our CustomUserDetails (The Passport)

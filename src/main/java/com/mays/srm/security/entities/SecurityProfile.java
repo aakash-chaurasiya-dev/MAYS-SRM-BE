@@ -16,7 +16,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "security_profile")
+@Table(
+    name = "security_profile",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_security_profile_user",     columnNames = "user_id"),
+        @UniqueConstraint(name = "uk_security_profile_employee", columnNames = "employee_id"),
+        @UniqueConstraint(name = "uk_security_profile_vendor",   columnNames = "vendor_id")
+    }
+)
 public class SecurityProfile {
 
     @Id
@@ -45,7 +52,7 @@ public class SecurityProfile {
 
     @Column(name = "first_time_login")
     @Builder.Default
-    private Boolean firstTimeLogin = false;
+    private Boolean firstTimeLogin = true;
 
     @Column(name = "no_of_failed_attempts")
     @Builder.Default

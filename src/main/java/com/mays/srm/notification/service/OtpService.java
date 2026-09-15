@@ -50,7 +50,6 @@ public class OtpService {
                 .status("PENDING")
                 .retryCount(0)
                 .build();
-
         try {
             notificationScheduler.sendEmail(outbox);
         } catch (Exception e) {
